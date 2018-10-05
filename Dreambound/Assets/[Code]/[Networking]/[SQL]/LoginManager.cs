@@ -4,15 +4,11 @@ using UnityEngine;
 
 public class LoginManager : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    [SerializeField] private string _username;
+    [SerializeField] private string _password;
 
-    // Update is called once per frame
-    void Update()
+    public void Login()
     {
-        
+
     }
 }
