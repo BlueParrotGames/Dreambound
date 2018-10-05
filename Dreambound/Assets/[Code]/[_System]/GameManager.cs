@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.UI;
 //using UnityEngine.Rendering.PostProcessing;
 
-[ExecuteInEditMode]
 public class GameManager : MonoBehaviour
 {
     private Camera cam;
