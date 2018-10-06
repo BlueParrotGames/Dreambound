@@ -294,6 +294,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _username: test
   _password: test
+  _ipAddress: 127.0.0.1
+  _port: 4381
 --- !u!4 &1382528520
 Transform:
   m_ObjectHideFlags: 0

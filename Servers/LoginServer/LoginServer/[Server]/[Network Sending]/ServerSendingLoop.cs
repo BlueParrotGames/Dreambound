@@ -26,14 +26,17 @@ namespace BPS.LoginServer.Sending
 
         private void CoreLoop()
         {
-            while (_isSending)
+            if (_sendingQueue.HasPackets())
             {
-                SendingData sendableData = _sendingQueue.SendingQueue.Dequeue();
-                byte[] bytes = sendableData.Buffer.ToArray();
-                int length = bytes.Length;
+                while (_isSending)
+                {
+                    SendingData sendableData = _sendingQueue.SendingQueue.Dequeue();
+                    byte[] bytes = sendableData.Buffer.ToArray();
+                    int length = bytes.Length;
 
-                //send the data
-                sendableData.Receiver.BeginSend(bytes, 0, length, SocketFlags.None, new AsyncCallback(SendCallback), null);
+                    //send the data
+                    sendableData.Receiver.BeginSend(bytes, 0, length, SocketFlags.None, new AsyncCallback(SendCallback), null);
+                }
             }
         }
 

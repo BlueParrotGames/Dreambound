@@ -11,7 +11,7 @@ namespace BPS.LoginServer
         static void Main(string[] args)
         {
             Server loginServer = new Server();
-            Console.ReadKey();
+            //Console.ReadKey();
         }
     }
 }
