@@ -22,6 +22,7 @@ namespace BPS.LoginServer.DataHandling
         {
             Packets.Add((int)PacketType.LoginRequest, SendLoginResponse);
             Packets.Add((int)PacketType.DataRequest, SendDataResponse);
+            
         }
 
         private void SendLoginResponse(ClientNetworkPackage package)

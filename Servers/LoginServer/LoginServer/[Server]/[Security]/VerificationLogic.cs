@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 using BPS.LoginServer.Utility;
 using BPS.LoginServer.Sending;
@@ -19,6 +20,8 @@ namespace BPS.LoginServer.Security
             string hash = CreateHash(time);
             buffer.WriteString(hash);
             client.HashToken = hash;
+
+            Thread.Sleep(1000);
 
             NetworkSender.SendPacket(buffer, client.Socket);
         }

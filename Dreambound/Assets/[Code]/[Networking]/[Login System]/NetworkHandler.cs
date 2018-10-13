@@ -10,6 +10,8 @@ namespace Dreambound.Networking
     {
         private Socket _socket;
 
+        private DataReceiver _dataReceiver;
+
         public NetworkHandler()
         {
             _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -22,6 +24,9 @@ namespace Dreambound.Networking
         private void ConnectCallback(IAsyncResult result)
         {
             Debug.Log("Connection made!");
+
+            _dataReceiver = new DataReceiver(_socket);
+            _dataReceiver.ReceiveData();
         }
     }
 }
