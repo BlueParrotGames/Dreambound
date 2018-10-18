@@ -21,9 +21,9 @@ namespace BPS.LoginServer.Security
             buffer.WriteString(hash);
             client.HashToken = hash;
 
-            Thread.Sleep(1000);
-
             NetworkSender.SendPacket(buffer, client.Socket);
+
+            Debugging.Logger.Log("verification sent");
         }
 
         public static string CreateHash(string input)

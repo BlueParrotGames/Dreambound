@@ -40,7 +40,7 @@ namespace BPS.LoginServer
 
                 if (readBytes <= 0)
                 {
-                    Logger.Warn("Received 0 bytes?");
+                    Logger.LogError("Received 0 bytes?");
                     CloseConnection();
                     return;
                 }
@@ -79,6 +79,8 @@ namespace BPS.LoginServer
 
         private void CloseConnection()
         {
+            Logger.Warn("A client has disconnected (IP: " + Socket.RemoteEndPoint + ")");
+
             Socket.Close();
             _server.DisconnectPlayer(Socket);
         }

@@ -1,27 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Net.Sockets;
 
-namespace BPS.LoginServer.Sending
+namespace Dreambound.Networking.DataHandling
 {
-    class ServerSendingLoop
+    public class NetworkSendingLoop : IDisposable
     {
         private readonly NetworkSendingQueue _sendingQueue;
-        private readonly Server _server;
+        private readonly DataManager _dataManager;
         private readonly bool _isSending;
 
-        public ServerSendingLoop(Server server, NetworkSendingQueue queue)
-        {
-            _sendingQueue = queue;
-            _isSending = true;
-            _server = server;
+        private Thread _sendingThreadOne;
 
-            Thread sendingThreadOne = new Thread(CoreLoop);
-            sendingThreadOne.Start();
+        public NetworkSendingLoop(DataManager dataManager, NetworkSendingQueue sendingQueue)
+        {
+            _sendingQueue = sendingQueue;
+            _isSending = true;
+            _dataManager = dataManager;
+
+            _sendingThreadOne = new Thread(CoreLoop);
+            _sendingThreadOne.Start();
         }
 
         private void CoreLoop()
@@ -36,9 +34,14 @@ namespace BPS.LoginServer.Sending
                 }
             }
         }
-
         private void SendCallback(IAsyncResult result)
         {
+
+        }
+
+        public void Dispose()
+        {
+            _sendingThreadOne.Abort();
         }
     }
 }

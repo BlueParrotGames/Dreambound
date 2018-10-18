@@ -8,7 +8,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/[Scenes]/Grootloops_scene.unity
     guid: 99c9720ab356a0642a771bea13969a05
-  - enabled: 1
-    path: Assets/Resources/Scenes/Crash_scene.unity
-    guid: 31afcc1c7d4872b4d92fd3519e07c3fd
+  - enabled: 0
+    path: 
+    guid: 00000000000000000000000000000000
   m_configObjects: {}

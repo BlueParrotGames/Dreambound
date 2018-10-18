@@ -79,7 +79,6 @@ namespace BPS.LoginServer
         public void DisconnectPlayer(Socket socket)
         {
             ConnectedClients.Remove(socket);
-            Logger.Warn("A client has disconnected (IP: " + socket.RemoteEndPoint + ")");
         }
 
         private void ServerPacketHandlingLoop()

@@ -1,13 +1,11 @@
-﻿using System;
+﻿using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Net.Sockets;
+using UnityEngine;
 
-using BPS.LoginServer.Utility;
+using Dreambound.Networking.Utility;
 
-namespace BPS.LoginServer.DataHandling
+namespace Dreambound.Networking.DataHandling
 {
     public class PackageHandling
     {
@@ -17,8 +15,8 @@ namespace BPS.LoginServer.DataHandling
         private Queue<ClientNetworkPackage> _packages;
         public Queue<ClientNetworkPackage> PackageQueue
         {
-            get => _packages;
-            set => _packages = value;
+            get { return _packages; }
+            set { _packages = value; }
         }
 
         public PackageHandling()
