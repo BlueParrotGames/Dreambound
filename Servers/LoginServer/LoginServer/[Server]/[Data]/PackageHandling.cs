@@ -12,7 +12,7 @@ namespace BPS.LoginServer.DataHandling
     public class PackageHandling
     {
         private ByteBuffer _buffer;
-        private ClientNetworkPackage _networkPackage;
+        //private ClientNetworkPackage _networkPackage;
 
         private Queue<ClientNetworkPackage> _packages;
         public Queue<ClientNetworkPackage> PackageQueue
@@ -33,7 +33,7 @@ namespace BPS.LoginServer.DataHandling
             int packetSize = _buffer.ReadInt();
             int packetID = _buffer.ReadInt();
 
-            PackageQueue.Enqueue(new ClientNetworkPackage((PacketType)packetID, socket, data));
+            PackageQueue.Enqueue(new ClientNetworkPackage((PacketType)packetID, socket, _buffer.ReadBytes(_buffer.Length())));
 
             _buffer.Clear();
         }

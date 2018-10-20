@@ -8,8 +8,11 @@ namespace Dreambound.Networking.DataHandling
     {
         Verification = 0,
         LoginRequest,
+        OnlineUsersRequest,
         DataRequest,
+
         LoginResponse,
+        OnlineUsersResponse,
         DataResponse,
     }
 }

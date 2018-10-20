@@ -37,18 +37,28 @@ namespace Dreambound.Networking.DataHandling
         private void HandleVerificationHash(ClientNetworkPackage package)
         {
             Debug.Log("Verification Hash received");
+
+            _byteBuffer.Clear();
+            _byteBuffer.WriteBytes(package.Data);
+
+            NetworkEvents.Instance.RegisterHashReceived(_byteBuffer.ReadString());
         }
         private void HandleLoginResponse(ClientNetworkPackage package)
         {
             _byteBuffer.Clear();
 
+            //Convert the ByteBuffer to LoginData
             _byteBuffer.WriteBytes(package.Data);
-            int length = _byteBuffer.ReadInt();
-            PacketType type = (PacketType)_byteBuffer.ReadInt();
-
             LoginData loginData = new LoginData((LoginState)_byteBuffer.ReadInt(), _byteBuffer.ReadString(), _byteBuffer.ReadInt(), (GamePerks)_byteBuffer.ReadInt());
 
-            UserData.SetUserData(loginData);
+            //Register the event to the event handler
+            NetworkEvents.Instance.RegisterLoginAttempt(loginData.LoginState);
+
+            //Update the UserData because we successfully logged in
+            if (loginData.LoginState == LoginState.SuccelfullLogin)
+                UserData.SetUserData(loginData);
+
+            Debug.Log("Login response received");
         }
         private void HandleDataResponse(ClientNetworkPackage package)
         {

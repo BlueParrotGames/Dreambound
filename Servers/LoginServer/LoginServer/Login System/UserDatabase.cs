@@ -9,7 +9,7 @@ using BPS.LoginServer.Utility;
 
 namespace BPS.User.Database
 {
-    public enum LoginState { wrongUsernameOrPassword = 0, SuccelfullLogin = 1, CannotConnectToDatabase = 2, UserAlreadyLoggedIn = 3};
+    public enum LoginState { wrongUsernameOrPassword = 0, SuccelfullLogin = 1, CannotConnectToDatabase = 2, UserAlreadyLoggedIn = 3 };
     public enum GamePerks { None = 0, Default, VIP, Developer };
 
     class UserDatabase
@@ -22,8 +22,8 @@ namespace BPS.User.Database
             ByteBuffer buffer = new ByteBuffer();
 
             buffer.WriteBytes(data);
-            buffer.ReadInt();
-            buffer.ReadInt();
+            //buffer.ReadInt();
+            //buffer.ReadInt();
 
             string username = buffer.ReadString();
             string password = buffer.ReadString();
@@ -34,14 +34,13 @@ namespace BPS.User.Database
 
         public static LoginData Login(string username, string password, string email)
         {
-            _sqlConnection.Open();
-
             MySqlCommand sqlCommand = new MySqlCommand("select * from account where login_name='" + username + "' and password='" + password + "' and email='" + email + "';", _sqlConnection);
 
             if (_sqlConnection.State == ConnectionState.Closed)
                 _sqlConnection.Open();
 
-            _sqlDataReader = sqlCommand.ExecuteReader();
+            if (_sqlDataReader == null)
+                _sqlDataReader = sqlCommand.ExecuteReader();
 
             int count = 0;
             while (_sqlDataReader.Read())
@@ -55,11 +54,11 @@ namespace BPS.User.Database
             }
             else if (count > 1)
             {
-                return new LoginData(LoginState.CannotConnectToDatabase, null, 0, GamePerks.None);
+                return new LoginData(LoginState.CannotConnectToDatabase, "", 0, GamePerks.None);
             }
             else
             {
-                return new LoginData(LoginState.wrongUsernameOrPassword, null, 0, GamePerks.None);
+                return new LoginData(LoginState.wrongUsernameOrPassword, "", 0, GamePerks.None);
             }
         }
 

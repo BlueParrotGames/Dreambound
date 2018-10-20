@@ -10,8 +10,11 @@ namespace BPS.LoginServer.Utility
     {
         Verification = 0,
         LoginRequest,
+        OnlineUsersRequest,
         DataRequest,
+
         LoginResponse,
+        OnlineUsersResponse,
         DataResponse,
     }
 }

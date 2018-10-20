@@ -34,7 +34,7 @@ namespace BPS.LoginServer
         private Dictionary<string, int> _connectedUsers;
         private Thread _packetHandlingThread;
 
-        private bool _isRunning;
+        private readonly bool _isRunning;
 
         public PackageHandling PacketHandler { get => _packetHandler; set => _packetHandler = value; }
         internal Dictionary<Socket, Client> ConnectedClients { get => _connectedClients; set => _connectedClients = value; }
@@ -82,7 +82,7 @@ namespace BPS.LoginServer
         public void DisconnectPlayer(Socket socket)
         {
             ConnectedClients.Remove(socket);
-            ConnectedUsers.Remove(ConnectedClients[socket].Username);
+            //ConnectedUsers.Remove(ConnectedClients[socket].Username);
         }
 
         private void ServerPacketHandlingLoop()
@@ -93,7 +93,7 @@ namespace BPS.LoginServer
                 {
                     ClientNetworkPackage package = _packetHandler.PackageQueue.Dequeue();
 
-                    if(_dataHandler.Packets.TryGetValue((int)package.Packet, out DataHandler.Packet packet))
+                    if (_dataHandler.Packets.TryGetValue((int)package.Packet, out DataHandler.Packet packet))
                     {
                         packet?.Invoke(package);
                     }
@@ -111,6 +111,9 @@ namespace BPS.LoginServer
 
         public bool IsUserAlreadyOnline(string username)
         {
+            if (ConnectedClients.Count == 0)
+                return false;
+
             return ConnectedUsers.ContainsKey(username);
         }
     }

@@ -31,7 +31,7 @@ namespace Dreambound.Networking.DataHandling
             int packetSize = _buffer.ReadInt();
             int packetID = _buffer.ReadInt();
 
-            PackageQueue.Enqueue(new ClientNetworkPackage((PacketType)packetID, socket, data));
+            PackageQueue.Enqueue(new ClientNetworkPackage((PacketType)packetID, socket, _buffer.ReadBytes(_buffer.Length())));
 
             _buffer.Clear();
         }

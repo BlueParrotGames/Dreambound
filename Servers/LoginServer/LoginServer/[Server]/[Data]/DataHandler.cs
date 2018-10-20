@@ -36,7 +36,7 @@ namespace BPS.LoginServer.DataHandling
         private void HandleLoginRequest(ClientNetworkPackage package)
         {
             LoginData loginData = UserDatabase.Login(package.Data);
-
+        
             _buffer.Clear();
 
             //Check if the given username has already been used to succesfully log in
@@ -56,13 +56,20 @@ namespace BPS.LoginServer.DataHandling
                 _buffer.WriteInt(loginData.UserId);
                 _buffer.WriteInt((int)loginData.GamePerks);
 
-                //Set the username of the client
-                Server.Instance.ConnectedUsers.Add(loginData.Username, loginData.UserId);
-                Server.Instance.ConnectedClients[package.Socket].Username = loginData.Username;
+                if(loginData.LoginState == LoginState.SuccelfullLogin)
+                {
+                    //Set the username of the client
+                    Server.Instance.ConnectedUsers.Add(loginData.Username, loginData.UserId);
+                    Server.Instance.ConnectedClients[package.Socket].Username = loginData.Username;
+                }
             }
 
             //Send the packet
             NetworkSender.SendPacket(_buffer, package.Socket);
+        }
+        private void HandleOnlineUserRequest(ClientNetworkPackage package)
+        {
+            _buffer.Clear();
         }
         private void HandleDataRequest(ClientNetworkPackage package)
         {

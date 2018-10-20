@@ -79,7 +79,7 @@ namespace BPS.LoginServer
 
         private void CloseConnection()
         {
-            Logger.Warn("A client has disconnected (IP: " + Socket.RemoteEndPoint + ")");
+            //Logger.Warn("A client has disconnected (IP: " + Socket.RemoteEndPoint + ")");
 
             Socket.Close();
             _server.DisconnectPlayer(Socket);

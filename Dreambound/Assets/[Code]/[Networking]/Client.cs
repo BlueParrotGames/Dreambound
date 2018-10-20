@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using UnityEngine;
 
 using Dreambound.Networking.DataHandling;
+using Dreambound.Networking.Utility;
 
 namespace Dreambound.Networking
 {
@@ -15,7 +16,7 @@ namespace Dreambound.Networking
         private readonly byte[] _buffer;
         private readonly DataManager _dataManager;
 
-        private readonly string HashToken;
+        private string HashToken;
 
         public Client(Socket socket, DataManager dataManager)
         {
@@ -23,6 +24,8 @@ namespace Dreambound.Networking
             _dataManager = dataManager;
 
             _buffer = new byte[4096];
+
+            NetworkEvents.Instance.OnHashReceived += UpdateHash;
 
             BeginReceive();
         }
@@ -61,7 +64,6 @@ namespace Dreambound.Networking
 
             Debug.Log("received package");
         }
-
         private void GetPacketsOutOfStream(byte[] buffer)
         {
             int readPos = 0;
@@ -82,6 +84,13 @@ namespace Dreambound.Networking
         private void CloseConnection()
         {
             _socket.Close();
+        }
+
+        private void UpdateHash(string Hash)
+        {
+            HashToken = Hash;
+
+            Debug.Log(HashToken);
         }
     }
 }
