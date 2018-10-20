@@ -34,13 +34,15 @@ namespace BPS.User.Database
 
         public static LoginData Login(string username, string password, string email)
         {
+            if (_sqlDataReader != null)
+                _sqlDataReader.Close();
+
             MySqlCommand sqlCommand = new MySqlCommand("select * from account where login_name='" + username + "' and password='" + password + "' and email='" + email + "';", _sqlConnection);
 
             if (_sqlConnection.State == ConnectionState.Closed)
                 _sqlConnection.Open();
 
-            if (_sqlDataReader == null)
-                _sqlDataReader = sqlCommand.ExecuteReader();
+            _sqlDataReader = sqlCommand.ExecuteReader();
 
             int count = 0;
             while (_sqlDataReader.Read())

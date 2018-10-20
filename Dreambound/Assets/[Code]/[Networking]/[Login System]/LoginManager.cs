@@ -6,10 +6,11 @@ using UnityEngine.UI;
 
 using LoginState = Dreambound.Networking.LoginSystem.LoginState;
 using Dreambound.Networking.Utility;
+using Dreambound.Networking.Threading;
 
 namespace Dreambound.Networking.LoginSystem
 {
-    public class LoginManager : MonoBehaviour
+    public class LoginManager : ThreadObject
     {
         [SerializeField] private string _ipAddress;
         [SerializeField] private int _port;
@@ -21,10 +22,14 @@ namespace Dreambound.Networking.LoginSystem
         [SerializeField] private Text _feedbackText;
 
         private NetworkHandler _networkHandler;
+        private bool _connected = false;
 
         private void Awake()
         {
-            NetworkEvents.Instance.OnLoginAttempt += UpdateFeedBackText;
+            //Events settings
+            SetFunction(UpdateFeedBackText);
+            NetworkEvents.Instance.OnLoginAttempt += Listener;
+
             _networkHandler = new NetworkHandler();
         }
         private void Start()
@@ -34,13 +39,14 @@ namespace Dreambound.Networking.LoginSystem
 
         public void Login()
         {
+
             //_networkHandler.Login(_usernameText.text, _passwordText.text, _emailText.text);
             _networkHandler.Login("test", "test", "test");
         }
 
-        private void UpdateFeedBackText(LoginState loginState)
+        private void UpdateFeedBackText(object loginState)
         {
-            switch (loginState)
+            switch ((LoginState)loginState)
             {
                 case LoginState.CannotConnectToDatabase:
 

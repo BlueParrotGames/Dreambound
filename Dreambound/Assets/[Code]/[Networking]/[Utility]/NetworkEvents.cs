@@ -22,7 +22,7 @@ namespace Dreambound.Networking.Utility
         }
 
         //Events
-        public event Action<LoginState> OnLoginAttempt;
+        public event Action<object> OnLoginAttempt;
         public event Action<string> OnHashReceived;
 
         //Register Functions
@@ -30,7 +30,6 @@ namespace Dreambound.Networking.Utility
         {
             OnLoginAttempt?.Invoke(loginState);
         }
-
         public void RegisterHashReceived(string Hash)
         {
             OnHashReceived?.Invoke(Hash);

@@ -11,36 +11,41 @@ namespace Dreambound.Networking
 {
     public class NetworkHandler
     {
-        Socket socket;
+        private Socket _socket;
+        private bool _connected = false;
 
         public void ConnectUsingSettings(string ip, int port)
         {
-            socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             try
             {
-                socket.Connect(ip, port);
+                _socket.Connect(ip, port);
             }
             catch
             {
                 Debug.LogWarning("Connection could not be made");
             }
 
-            if (socket.Connected)
+            if (_socket.Connected)
             {
-                Client client = new Client(socket, new DataHandling.DataManager());
+                Client client = new Client(_socket, new DataManager());
+                _connected = true;
             }
         }
 
         public void Login(string username, string password, string email)
         {
+            if (!_connected)
+                return;
+
             ByteBuffer buffer = new ByteBuffer();
             buffer.WriteInt((int)PacketType.LoginRequest);
             buffer.WriteString(username);
             buffer.WriteString(password);
             buffer.WriteString(email);
 
-            NetworkSender.SendPacket(buffer, socket);
+            NetworkSender.SendPacket(buffer, _socket);
         }
     }
 }

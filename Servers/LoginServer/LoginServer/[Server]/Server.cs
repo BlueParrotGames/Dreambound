@@ -82,7 +82,7 @@ namespace BPS.LoginServer
         public void DisconnectPlayer(Socket socket)
         {
             ConnectedClients.Remove(socket);
-            //ConnectedUsers.Remove(ConnectedClients[socket].Username);
+            ConnectedUsers.Remove(ConnectedClients[socket].Username);
         }
 
         private void ServerPacketHandlingLoop()
