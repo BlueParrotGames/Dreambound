@@ -15,6 +15,8 @@ namespace Dreambound.Networking
         private readonly byte[] _buffer;
         private readonly DataManager _dataManager;
 
+        private readonly string HashToken;
+
         public Client(Socket socket, DataManager dataManager)
         {
             _socket = socket;

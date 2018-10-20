@@ -15,6 +15,7 @@ namespace BPS.LoginServer
         private readonly byte[] _buffer;
 
         public string HashToken { get; set; }
+        public string Username { get; set; }
 
         public Socket Socket { get; }
 
@@ -59,7 +60,6 @@ namespace BPS.LoginServer
                 CloseConnection();
             }
         }
-
         private void GetPacketsOutOfStream(byte[] buffer)
         {
             int readPos = 0;

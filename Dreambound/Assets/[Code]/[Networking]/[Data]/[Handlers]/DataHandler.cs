@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 using Dreambound.Networking.Utility;
+using Dreambound.Networking.LoginSystem;
 
 namespace Dreambound.Networking.DataHandling
 {
@@ -17,9 +18,12 @@ namespace Dreambound.Networking.DataHandling
             set { _packets = value; }
         }
 
+        private ByteBuffer _byteBuffer;
+
         public DataHandler()
         {
             _packets = new Dictionary<int, Packet>();
+            _byteBuffer = new ByteBuffer();
 
             SetupNetworkPackets();
         }
@@ -36,7 +40,15 @@ namespace Dreambound.Networking.DataHandling
         }
         private void HandleLoginResponse(ClientNetworkPackage package)
         {
-            Debug.Log("Login response received");
+            _byteBuffer.Clear();
+
+            _byteBuffer.WriteBytes(package.Data);
+            int length = _byteBuffer.ReadInt();
+            PacketType type = (PacketType)_byteBuffer.ReadInt();
+
+            LoginData loginData = new LoginData((LoginState)_byteBuffer.ReadInt(), _byteBuffer.ReadString(), _byteBuffer.ReadInt(), (GamePerks)_byteBuffer.ReadInt());
+
+            UserData.SetUserData(loginData);
         }
         private void HandleDataResponse(ClientNetworkPackage package)
         {

@@ -14,7 +14,7 @@ using BPS.LoginServer.DataHandling;
 
 namespace BPS.LoginServer
 {
-    public class Server
+    public class Server : IDisposable
     {
         public static Server Instance;
 
@@ -24,24 +24,27 @@ namespace BPS.LoginServer
         private DataHandler _dataHandler;
 
         //Sending instances
-        private NetworkSender _networkSender;
-        private NetworkSendingQueue _sendingQueue;
-        private ServerSendingLoop _sendingLoop;
+        private readonly NetworkSender _networkSender;
+        private readonly NetworkSendingQueue _sendingQueue;
+        private readonly ServerSendingLoop _sendingLoop;
 
         private VerificationLogic _verification;
 
         private Dictionary<Socket, Client> _connectedClients;
+        private Dictionary<string, int> _connectedUsers;
         private Thread _packetHandlingThread;
 
         private bool _isRunning;
 
         public PackageHandling PacketHandler { get => _packetHandler; set => _packetHandler = value; }
         internal Dictionary<Socket, Client> ConnectedClients { get => _connectedClients; set => _connectedClients = value; }
+        internal Dictionary<string, int> ConnectedUsers { get => _connectedUsers; set => _connectedUsers = value; }
 
         public Server()
         {
             Instance = this;
             ConnectedClients = new Dictionary<Socket, Client>();
+            ConnectedUsers = new Dictionary<string, int>();
 
             //Setup all the data components
             PacketHandler = new PackageHandling();
@@ -79,6 +82,7 @@ namespace BPS.LoginServer
         public void DisconnectPlayer(Socket socket)
         {
             ConnectedClients.Remove(socket);
+            ConnectedUsers.Remove(ConnectedClients[socket].Username);
         }
 
         private void ServerPacketHandlingLoop()
@@ -97,6 +101,17 @@ namespace BPS.LoginServer
 
                 Thread.Sleep(10);
             }
+        }
+
+        public void Dispose()
+        {
+            //_socket.Close();
+            //_packetHandlingThread.Abort();
+        }
+
+        public bool IsUserAlreadyOnline(string username)
+        {
+            return ConnectedUsers.ContainsKey(username);
         }
     }
 }
