@@ -34,7 +34,7 @@ namespace Dreambound.Networking
             }
         }
 
-        public void Login(string username, string password, string email)
+        public void Login(string username, string password)
         {
             if (!_connected)
                 return;
@@ -43,7 +43,6 @@ namespace Dreambound.Networking
             buffer.WriteInt((int)PacketType.LoginRequest);
             buffer.WriteString(username);
             buffer.WriteString(password);
-            buffer.WriteString(email);
 
             NetworkSender.SendPacket(buffer, _socket);
         }

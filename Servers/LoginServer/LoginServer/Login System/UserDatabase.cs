@@ -20,24 +20,17 @@ namespace BPS.User.Database
         public static LoginData Login(byte[] data)
         {
             ByteBuffer buffer = new ByteBuffer();
-
             buffer.WriteBytes(data);
-            //buffer.ReadInt();
-            //buffer.ReadInt();
 
-            string username = buffer.ReadString();
-            string password = buffer.ReadString();
-            string email = buffer.ReadString();
-
-            return Login(username, password, email);
+            return Login(buffer.ReadString(), buffer.ReadString());
         }
 
-        public static LoginData Login(string username, string password, string email)
+        public static LoginData Login(string username, string password)
         {
             if (_sqlDataReader != null)
                 _sqlDataReader.Close();
 
-            MySqlCommand sqlCommand = new MySqlCommand("select * from account where login_name='" + username + "' and password='" + password + "' and email='" + email + "';", _sqlConnection);
+            MySqlCommand sqlCommand = new MySqlCommand("select * from account where login_name='" + username + "' and password='" + password + "';", _sqlConnection);
 
             if (_sqlConnection.State == ConnectionState.Closed)
                 _sqlConnection.Open();

@@ -18,11 +18,9 @@ namespace Dreambound.Networking.LoginSystem
         [Header("UI Properties")]
         [SerializeField] private InputField _usernameText;
         [SerializeField] private InputField _passwordText;
-        [SerializeField] private InputField _emailText;
         [SerializeField] private Text _feedbackText;
 
         private NetworkHandler _networkHandler;
-        private bool _connected = false;
 
         private void Awake()
         {
@@ -39,9 +37,8 @@ namespace Dreambound.Networking.LoginSystem
 
         public void Login()
         {
-
             //_networkHandler.Login(_usernameText.text, _passwordText.text, _emailText.text);
-            _networkHandler.Login("test", "test", "test");
+            _networkHandler.Login("test", "test");
         }
 
         private void UpdateFeedBackText(object loginState)
