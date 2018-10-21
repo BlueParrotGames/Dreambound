@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
-using LoginState = Dreambound.Networking.LoginSystem.LoginState;
 using Dreambound.Networking.Utility;
 using Dreambound.Networking.Threading;
 
@@ -12,36 +9,35 @@ namespace Dreambound.Networking.LoginSystem
 {
     public class LoginManager : ThreadObject
     {
-        [SerializeField] private string _ipAddress;
-        [SerializeField] private int _port;
+        [SerializeField] private string _connectionIp;
+        [SerializeField] private int _connectionPort;
 
         [Header("UI Properties")]
-        [SerializeField] private InputField _usernameText;
+        [SerializeField] private InputField _emailText;
         [SerializeField] private InputField _passwordText;
         [SerializeField] private Text _feedbackText;
 
-        private NetworkHandler _networkHandler;
+        private NetworkManager _networkManager;
 
         private void Awake()
         {
             //Events settings
             SetFunction(UpdateFeedBackText);
             NetworkEvents.Instance.OnLoginAttempt += Listener;
-
-            _networkHandler = new NetworkHandler();
         }
         private void Start()
         {
-            _networkHandler.ConnectUsingSettings(_ipAddress, _port);
+            _networkManager = FindObjectOfType<NetworkManager>();
+            _networkManager.ConnectUsingSettings(_connectionIp, _connectionPort);
         }
 
         public void Login()
         {
-            //_networkHandler.Login(_usernameText.text, _passwordText.text, _emailText.text);
-            _networkHandler.Login("test", "test");
+            _networkManager.Login("test", "test");
+            //_networkHandler.Login(_emailText.text, _passwordText.text);
         }
 
-        private void UpdateFeedBackText(object loginState)
+        private void UpdateFeedBackText(object loginState, object gamePerk)
         {
             switch ((LoginState)loginState)
             {
@@ -51,7 +47,8 @@ namespace Dreambound.Networking.LoginSystem
                     break;
                 case LoginState.SuccelfullLogin:
 
-                    _feedbackText.text = "Succesfully logged in!";
+                    if ((int)gamePerk <= 0) _feedbackText.text = "You do not own this game";
+                    else _feedbackText.text = "Succesfully logged in!";
                     break;
                 case LoginState.UserAlreadyLoggedIn:
 

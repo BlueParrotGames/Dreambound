@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Reflection;
+using System.IO;
 using System.Net.Sockets;
 using System.Net;
 using System.Threading;
@@ -11,6 +11,7 @@ using BPS.Debugging;
 using BPS.LoginServer.Sending;
 using BPS.LoginServer.Security;
 using BPS.LoginServer.DataHandling;
+using BPS.LoginServer.Utility;
 
 namespace BPS.LoginServer
 {
@@ -38,13 +39,11 @@ namespace BPS.LoginServer
 
         public PackageHandling PacketHandler { get => _packetHandler; set => _packetHandler = value; }
         internal Dictionary<Socket, Client> ConnectedClients { get => _connectedClients; set => _connectedClients = value; }
-        internal Dictionary<string, int> ConnectedUsers { get => _connectedUsers; set => _connectedUsers = value; }
 
         public Server()
         {
             Instance = this;
             ConnectedClients = new Dictionary<Socket, Client>();
-            ConnectedUsers = new Dictionary<string, int>();
 
             //Setup all the data components
             PacketHandler = new PackageHandling();
@@ -82,7 +81,6 @@ namespace BPS.LoginServer
         public void DisconnectPlayer(Socket socket)
         {
             ConnectedClients.Remove(socket);
-            ConnectedUsers.Remove(ConnectedClients[socket].Username);
         }
 
         private void ServerPacketHandlingLoop()
@@ -109,12 +107,17 @@ namespace BPS.LoginServer
             //_packetHandlingThread.Abort();
         }
 
-        public bool IsUserAlreadyOnline(string username)
+        public bool IsUserAlreadyOnline(string username, int id)
         {
-            if (ConnectedClients.Count == 0)
-                return false;
+            string[] OnlineUsers = FileLoader.ReadTxtFile();
 
-            return ConnectedUsers.ContainsKey(username);
+            if (OnlineUsers == null)
+            {
+                Logger.LogError("There is no OnlineUsers.txt!!!");
+                return false;
+            }
+
+            return (OnlineUsers.Contains((username + "#" + id)));
         }
     }
 }

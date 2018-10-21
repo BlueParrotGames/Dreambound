@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net.Sockets;
+using System.Net;
 
 using BPS.Debugging;
 
@@ -16,7 +17,6 @@ namespace BPS.LoginServer
 
         public string HashToken { get; set; }
         public string Username { get; set; }
-
         public Socket Socket { get; }
 
         public Client(Socket socket, Server server)
@@ -79,8 +79,6 @@ namespace BPS.LoginServer
 
         private void CloseConnection()
         {
-            //Logger.Warn("A client has disconnected (IP: " + Socket.RemoteEndPoint + ")");
-
             Socket.Close();
             _server.DisconnectPlayer(Socket);
         }

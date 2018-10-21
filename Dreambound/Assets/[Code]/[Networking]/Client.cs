@@ -9,7 +9,7 @@ using Dreambound.Networking.Utility;
 
 namespace Dreambound.Networking
 {
-    class Client
+    public class Client
     {
         private Socket _socket;
 
@@ -89,8 +89,6 @@ namespace Dreambound.Networking
         private void UpdateHash(string Hash)
         {
             HashToken = Hash;
-
-            Debug.Log(HashToken);
         }
     }
 }

@@ -62,6 +62,16 @@ namespace Dreambound.Networking.Threading
             yield return null;
         }
 
+        public void Enqueue(Action<object, object> action, object obj1, object obj2)
+        {
+            Enqueue(ActionWrapper(action, obj1, obj2));
+        }
+        IEnumerator ActionWrapper(Action<object, object> a, object obj1, object obj2)
+        {
+            a(obj1, obj2);
+            yield return null;
+        }
+
 
         private static MainThreadDispatcher _instance = null;
 

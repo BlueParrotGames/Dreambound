@@ -25,12 +25,12 @@ namespace BPS.User.Database
             return Login(buffer.ReadString(), buffer.ReadString());
         }
 
-        public static LoginData Login(string username, string password)
+        public static LoginData Login(string email, string password)
         {
             if (_sqlDataReader != null)
                 _sqlDataReader.Close();
 
-            MySqlCommand sqlCommand = new MySqlCommand("select * from account where login_name='" + username + "' and password='" + password + "';", _sqlConnection);
+            MySqlCommand sqlCommand = new MySqlCommand("select * from account where email='" + email + "' and password='" + password + "';", _sqlConnection);
 
             if (_sqlConnection.State == ConnectionState.Closed)
                 _sqlConnection.Open();
@@ -45,7 +45,7 @@ namespace BPS.User.Database
 
             if (count == 1)
             {
-                return new LoginData(LoginState.SuccelfullLogin, username, _sqlDataReader.GetInt32("user_id"), (GamePerks)_sqlDataReader.GetInt32("db_account_level"));
+                return new LoginData(LoginState.SuccelfullLogin, _sqlDataReader.GetString("login_name"), _sqlDataReader.GetInt32("user_id"), (GamePerks)_sqlDataReader.GetInt32("db_account_level"));
             }
             else if (count > 1)
             {

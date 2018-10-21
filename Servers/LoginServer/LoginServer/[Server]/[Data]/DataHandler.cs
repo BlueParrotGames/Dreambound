@@ -30,7 +30,6 @@ namespace BPS.LoginServer.DataHandling
         private void SetupNetworkPackets()
         {
             Packets.Add((int)PacketType.LoginRequest, HandleLoginRequest);
-            Packets.Add((int)PacketType.DataRequest, HandleDataRequest);
         }
 
         private void HandleLoginRequest(ClientNetworkPackage package)
@@ -40,7 +39,7 @@ namespace BPS.LoginServer.DataHandling
             _buffer.Clear();
 
             //Check if the given username has already been used to succesfully log in
-            if (Server.Instance.IsUserAlreadyOnline(loginData.Username))
+            if (Server.Instance.IsUserAlreadyOnline(loginData.Username, loginData.UserId))
             {
                 _buffer.WriteInt((int)PacketType.LoginResponse);
                 _buffer.WriteInt((int)LoginState.UserAlreadyLoggedIn);
@@ -59,21 +58,12 @@ namespace BPS.LoginServer.DataHandling
                 if(loginData.LoginState == LoginState.SuccelfullLogin)
                 {
                     //Set the username of the client
-                    Server.Instance.ConnectedUsers.Add(loginData.Username, loginData.UserId);
-                    Server.Instance.ConnectedClients[package.Socket].Username = loginData.Username;
+                    Server.Instance.ConnectedClients[package.Socket].Username = (loginData.Username + "#" + loginData.UserId);
                 }
             }
 
             //Send the packet
             NetworkSender.SendPacket(_buffer, package.Socket);
-        }
-        private void HandleOnlineUserRequest(ClientNetworkPackage package)
-        {
-            _buffer.Clear();
-        }
-        private void HandleDataRequest(ClientNetworkPackage package)
-        {
-            Console.WriteLine("sending data response!");
         }
     }
 }
