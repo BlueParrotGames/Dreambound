@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 using BPS.LoginServer.Utility;
 using BPS.User.Database;
@@ -64,6 +60,9 @@ namespace BPS.LoginServer.DataHandling
 
             //Send the packet
             NetworkSender.SendPacket(_buffer, package.Socket);
+
+            //Tell the package to return itself to the NetworkPackagePool
+            package.ReturnToPool();
         }
     }
 }

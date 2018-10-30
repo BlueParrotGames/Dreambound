@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using System.Net.Sockets;
 
 using BPS.LoginServer.Utility;
@@ -12,7 +8,7 @@ namespace BPS.LoginServer.DataHandling
     public class PackageHandling
     {
         private ByteBuffer _buffer;
-        //private ClientNetworkPackage _networkPackage;
+        private NetworkPackagePool _packagePool;
 
         private Queue<ClientNetworkPackage> _packages;
         public Queue<ClientNetworkPackage> PackageQueue
@@ -24,6 +20,7 @@ namespace BPS.LoginServer.DataHandling
         public PackageHandling()
         {
             _packages = new Queue<ClientNetworkPackage>();
+            _packagePool = new NetworkPackagePool();
             _buffer = new ByteBuffer();
         }
 
@@ -33,7 +30,7 @@ namespace BPS.LoginServer.DataHandling
             int packetSize = _buffer.ReadInt();
             int packetID = _buffer.ReadInt();
 
-            PackageQueue.Enqueue(new ClientNetworkPackage((PacketType)packetID, socket, _buffer.ReadBytes(_buffer.Length())));
+            PackageQueue.Enqueue(_packagePool.GetPackage((PacketType)packetID, socket, _buffer.ReadBytes(_buffer.Length())));
 
             _buffer.Clear();
         }
