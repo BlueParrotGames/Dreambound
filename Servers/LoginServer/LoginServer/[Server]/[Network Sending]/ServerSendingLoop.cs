@@ -28,13 +28,15 @@ namespace BPS.LoginServer.Sending
                 {
                     SendingData sendableData = _sendingQueue.SendingQueue.Dequeue();
 
-                    sendableData.Receiver.BeginSend(sendableData.Buffer.ToArray(), 0, sendableData.Buffer.Count(), SocketFlags.None, new AsyncCallback(SendCallback), null);
+                    sendableData.Receiver.BeginSend(sendableData.Buffer.ToArray(), 0, sendableData.Buffer.Count(), SocketFlags.None, new AsyncCallback(SendCallback), sendableData.Receiver);
                 }
             }
         }
 
         private void SendCallback(IAsyncResult result)
         {
+            Socket socket = (Socket)result.AsyncState;
+            socket.EndSend(result);
         }
     }
 }

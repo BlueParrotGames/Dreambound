@@ -1079,7 +1079,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _connectionIp: 127.0.0.1
   _connectionPort: 4381
-  _usernameText: {fileID: 348751101}
+  _emailText: {fileID: 348751101}
   _passwordText: {fileID: 255714130}
   _feedbackText: {fileID: 1100247865}
 --- !u!4 &1382528520

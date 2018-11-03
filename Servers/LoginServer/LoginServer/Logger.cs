@@ -4,22 +4,22 @@ namespace BPS.Debugging
 {
     public class Logger
     {
-        public static void Log(string input)
+        public static void Log(object input)
         {
             Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine(">> " + input);
+            Console.WriteLine(">> " + input.ToString());
             Console.ForegroundColor = ConsoleColor.White;
         }
-        public static void Warn(string input)
+        public static void Warn(object input)
         {
             Console.ForegroundColor = ConsoleColor.DarkYellow;
-            Console.WriteLine(">> " + input);
+            Console.WriteLine(">> " + input.ToString());
             Console.ForegroundColor = ConsoleColor.White;
         }
-        public static void LogError(string input)
+        public static void LogError(object input)
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(">> " + input);
+            Console.WriteLine(">> " + input.ToString());
             Console.ForegroundColor = ConsoleColor.White;
         }
     }

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.IO;
 using System.Net.Sockets;
 using System.Net;
 using System.Threading;
@@ -11,7 +9,6 @@ using BPS.Debugging;
 using BPS.InGameServer.Sending;
 using BPS.InGameServer.Security;
 using BPS.InGameServer.DataHandling;
-using BPS.InGameServer.Utility;
 
 namespace BPS.InGameServer
 {
@@ -32,7 +29,7 @@ namespace BPS.InGameServer
         private VerificationLogic _verification;
 
         private Dictionary<Socket, Client> _connectedClients;
-        private Dictionary<string, int> _connectedUsers;
+        private List<string> _connectedUsers;
         private Thread _packetHandlingThread;
 
         private readonly bool _isRunning;
@@ -44,6 +41,7 @@ namespace BPS.InGameServer
         {
             Instance = this;
             ConnectedClients = new Dictionary<Socket, Client>();
+            _connectedUsers = new List<string>();
 
             //Setup all the data components
             PacketHandler = new PackageHandling();
@@ -55,7 +53,7 @@ namespace BPS.InGameServer
 
             //Setup the server socket
             _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            _socket.Bind(new IPEndPoint(IPAddress.Any, 4381));
+            _socket.Bind(new IPEndPoint(IPAddress.Any, 4382));
             _socket.Listen(20);
             _socket.BeginAccept(new AsyncCallback(AcceptConnection), null);
 
@@ -107,17 +105,15 @@ namespace BPS.InGameServer
             //_packetHandlingThread.Abort();
         }
 
-        public bool IsUserAlreadyOnline(string username, int id)
+        public void UpdateUserList(string username, int id, bool online)
         {
-            string[] OnlineUsers = FileLoader.ReadTxtFile();
+            string userString = username + "#" + id;
 
-            if (OnlineUsers == null)
-            {
-                Logger.LogError("There is no OnlineUsers.txt!!!");
-                return false;
-            }
-
-            return (OnlineUsers.Contains((username + "#" + id)));
+            if (online)
+                _connectedUsers.Add(userString);
+            else
+                _connectedUsers.Remove(userString);
         }
+
     }
 }

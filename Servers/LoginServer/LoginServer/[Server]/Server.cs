@@ -10,6 +10,7 @@ using BPS.LoginServer.Sending;
 using BPS.LoginServer.Security;
 using BPS.LoginServer.DataHandling;
 using BPS.LoginServer.Utility;
+using BPS.PipeLine;
 
 namespace BPS.LoginServer
 {
@@ -30,7 +31,7 @@ namespace BPS.LoginServer
         private VerificationLogic _verification;
 
         private Dictionary<Socket, Client> _connectedClients;
-        private Dictionary<string, int> _connectedUsers;
+        private List<string> _connectedUsers;
         private Thread _packetHandlingThread;
 
         private readonly bool _isRunning;
@@ -42,6 +43,7 @@ namespace BPS.LoginServer
         {
             Instance = this;
             ConnectedClients = new Dictionary<Socket, Client>();
+            _connectedUsers = new List<string>();
 
             //Setup all the data components
             PacketHandler = new PackageHandling();
@@ -58,6 +60,8 @@ namespace BPS.LoginServer
             _socket.BeginAccept(new AsyncCallback(AcceptConnection), null);
 
             _isRunning = true;
+
+            PipeClient.OnUserStateUpdated += UpdateUserList;
 
             _packetHandlingThread = new Thread(ServerPacketHandlingLoop);
             _packetHandlingThread.Start();
@@ -105,17 +109,18 @@ namespace BPS.LoginServer
             //_packetHandlingThread.Abort();
         }
 
+        private void UpdateUserList(string username, int id, bool online)
+        {
+            string userString = username + "#" + id;
+
+            if (online)
+                _connectedUsers.Add(userString);
+            else
+                _connectedUsers.Remove(userString);
+        }
         public bool IsUserAlreadyOnline(string username, int id)
         {
-            string[] OnlineUsers = FileLoader.ReadTxtFile();
-
-            if (OnlineUsers == null)
-            {
-                Logger.LogError("There is no OnlineUsers.txt!!!");
-                return false;
-            }
-
-            return (OnlineUsers.Contains((username + "#" + id)));
+            return (_connectedUsers.Contains((username + "#" + id)));
         }
     }
 }

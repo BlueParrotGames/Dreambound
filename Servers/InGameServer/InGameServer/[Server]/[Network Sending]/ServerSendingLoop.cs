@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Net.Sockets;
 
 namespace BPS.InGameServer.Sending
@@ -32,13 +28,15 @@ namespace BPS.InGameServer.Sending
                 {
                     SendingData sendableData = _sendingQueue.SendingQueue.Dequeue();
 
-                    sendableData.Receiver.BeginSend(sendableData.Buffer.ToArray(), 0, sendableData.Buffer.Count(), SocketFlags.None, new AsyncCallback(SendCallback), null);
+                    sendableData.Receiver.BeginSend(sendableData.Buffer.ToArray(), 0, sendableData.Buffer.Count(), SocketFlags.None, new AsyncCallback(SendCallback), sendableData.Receiver);
                 }
             }
         }
 
         private void SendCallback(IAsyncResult result)
         {
+            Socket socket = (Socket)result.AsyncState;
+            socket.EndSend(result);
         }
     }
 }

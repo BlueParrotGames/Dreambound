@@ -2,6 +2,7 @@
 
 using MySql.Data.MySqlClient;
 using BPS.LoginServer.Utility;
+using BPS.Debugging;
 
 namespace BPS.User.Database
 {
@@ -52,7 +53,6 @@ namespace BPS.User.Database
                 return new LoginData(LoginState.wrongUsernameOrPassword, "", 0, GamePerks.None);
             }
         }
-
         public static void Dispose()
         {
             _sqlConnection.Dispose();

@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 using BPS.InGameServer.Utility;
 using BPS.InGameServer.Sending;
+using BPS.PipeLine.Sending;
 
 namespace BPS.InGameServer.DataHandling
 {
@@ -28,6 +25,27 @@ namespace BPS.InGameServer.DataHandling
 
         private void SetupNetworkPackets()
         {
+            Packets.Add((int)PacketType.AccountInfo, HandleAccountInfo);
+        }
+
+        private void HandleAccountInfo(ClientNetworkPackage package)
+        {
+            _buffer.Clear();
+            _buffer.WriteBytes(package.Data);
+
+            //get the username and id to update the UserList
+            string username = _buffer.ReadString();
+            int id = _buffer.ReadInt();
+            Server.Instance.UpdateUserList(username, id, true);
+
+            //Rewrite the username, id and write an extra bool to send through the pipeline
+            _buffer.WriteString(username);
+            _buffer.WriteInt(id);
+            _buffer.WriteBool(true);
+
+            PipeSender.SendPacket(_buffer);
+
+            package.ReturnToPool();
         }
     }
 }

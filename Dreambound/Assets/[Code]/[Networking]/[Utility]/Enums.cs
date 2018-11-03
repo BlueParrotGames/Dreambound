@@ -3,7 +3,12 @@
     public enum PacketType
     {
         Verification = 0,
-        LoginRequest,
+
+        //Login System
+        LoginRequest = 101,
         LoginResponse,
+
+        //Friending System
+        AccountInfo = 201,
     }
 }

@@ -38,7 +38,8 @@ namespace Dreambound.Networking
                 _connected = true;
             }
 
-            _buffer = new ByteBuffer();
+            if (_buffer == null)
+                _buffer = new ByteBuffer();
         }
 
         private void DisconnectPreviousSocket()
@@ -61,6 +62,23 @@ namespace Dreambound.Networking
             _buffer.WriteInt((int)PacketType.LoginRequest);
             _buffer.WriteString(email);
             _buffer.WriteString(password);
+
+            NetworkSender.SendPacket(_buffer, _socket);
+        }
+        public void SendAccountInfo()
+        {
+            if (!_connected)
+                return;
+
+
+            _buffer.Clear();
+            _buffer.WriteInt((int)PacketType.AccountInfo);
+            //_buffer.WriteString(UserData.Username);
+            //_buffer.WriteInt(UserData.ID);
+
+            //REMOVE THS LATER!!!
+            _buffer.WriteString("test1");
+            _buffer.WriteInt(1);
 
             NetworkSender.SendPacket(_buffer, _socket);
         }

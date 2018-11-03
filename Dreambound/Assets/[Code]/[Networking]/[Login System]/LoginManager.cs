@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 using UnityEngine.SceneManagement;
 
 using Dreambound.Networking.Utility;
@@ -33,8 +34,7 @@ namespace Dreambound.Networking.LoginSystem
 
         public void Login()
         {
-            _networkManager.Login("test", "test");
-            //_networkHandler.Login(_emailText.text, _passwordText.text);
+            _networkManager.Login(_emailText.text, _passwordText.text);
         }
 
         private void UpdateFeedBackText(object loginState, object gamePerk)
@@ -47,8 +47,17 @@ namespace Dreambound.Networking.LoginSystem
                     break;
                 case LoginState.SuccelfullLogin:
 
-                    if ((int)gamePerk <= 0) _feedbackText.text = "You do not own this game";
-                    else _feedbackText.text = "Succesfully logged in!";
+                    if ((int)gamePerk <= 0)
+                    {
+                        _feedbackText.text = "You do not own this game";
+                    }
+                    else
+                    {
+                        _feedbackText.text = "Succesfully logged in!";
+
+                        StartCoroutine(WaitForSeconds(5f));
+                        SceneManager.LoadScene("FriendMenu");
+                    }
                     break;
                 case LoginState.UserAlreadyLoggedIn:
 
@@ -59,6 +68,11 @@ namespace Dreambound.Networking.LoginSystem
                     _feedbackText.text = "Password, Username or Email is incorrect";
                     break;
             }
+        }
+
+        IEnumerator WaitForSeconds(float time)
+        {
+            yield return new WaitForSeconds(time);
         }
     }
 }

@@ -27,13 +27,15 @@ namespace Dreambound.Networking.DataHandling
 
         public void QueuePackage(byte[] data, Socket socket)
         {
+            if (_buffer == null)
+                _buffer = new ByteBuffer();
+
+            _buffer.Clear();
             _buffer.WriteBytes(data);
             int packetSize = _buffer.ReadInt();
             int packetID = _buffer.ReadInt();
 
             PackageQueue.Enqueue(new ClientNetworkPackage((PacketType)packetID, socket, _buffer.ReadBytes(_buffer.Length())));
-
-            _buffer.Clear();
         }
 
         public bool HasPackets()

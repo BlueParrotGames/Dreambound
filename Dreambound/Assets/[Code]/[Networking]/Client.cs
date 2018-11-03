@@ -13,7 +13,7 @@ namespace Dreambound.Networking
     {
         private Socket _socket;
 
-        private readonly byte[] _buffer;
+        private readonly byte[] _buffer = new byte[4096];
         private readonly DataManager _dataManager;
 
         private string HashToken;
@@ -58,7 +58,8 @@ namespace Dreambound.Networking
             }
             catch
             {
-                Debug.LogError("Received some kind of error?!");
+                Debug.LogError("Connection with the server has been forcibly closed!");
+                //Debug.LogError("Received some kind of error?!");
                 CloseConnection();
             }
 

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using BPS.PipeLine;
 
 namespace BPS.InGameServer
 {
@@ -10,6 +8,8 @@ namespace BPS.InGameServer
     {
         static void Main(string[] args)
         {
+            PipeServer server = new PipeServer();
+            Server InGameServer = new Server();
         }
     }
 }

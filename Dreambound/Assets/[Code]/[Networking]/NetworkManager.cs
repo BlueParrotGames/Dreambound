@@ -28,6 +28,10 @@ namespace Dreambound.Networking
         {
             _networkHandler.Login(Email, Password);
         }
+        public void SendAccountInfo()
+        {
+            _networkHandler.SendAccountInfo();
+        }
 
         public void Destroy()
         {
