@@ -6,9 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/[Scenes]/[Networking]/LoginScene.unity
-    guid: 53f3f38abb2ced241aca90cf485e6328
-  - enabled: 1
-    path: Assets/[Scenes]/[Networking]/FriendMenu.unity
-    guid: c6e774015f545334a83ce26a80f5cbed
+    path: Assets/[Scenes]/AI_Testing.unity
+    guid: 7f7cb45e80bd4af40877e3caa300a943
   m_configObjects: {}
