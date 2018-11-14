@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 using Dreambound.Astar.Data;
@@ -34,7 +35,9 @@ namespace Dreambound.Astar
         int _penaltyMin = int.MaxValue;
         int _penaltyMax = int.MinValue;
 
-        //private Stopwatch _stopwatch;
+        //Debugging
+        private List<Node> _gridEdgeNodes;
+        Dictionary<int, Vector3[]> _edgeNodeLevels;
 
         private void Awake()
         {
@@ -59,10 +62,11 @@ namespace Dreambound.Astar
                 _walkableRegionsDic.Add(key, region.TerrainPenalty);
             }
 
-            //_stopwatch = new Stopwatch();
-            //_stopwatch.Start();
-
             GenerateGrid();
+
+#if UNITY_EDITOR
+            GetGridEdgeNodes();
+#endif
         }
 
         private void GenerateGrid()
@@ -74,6 +78,7 @@ namespace Dreambound.Astar
             worldBottomLeft = transform.position - Vector3.right * _gridWorldSize.x / 2f - Vector3.up * _gridWorldSize.y / 2f -
             worldBottomLeft - Vector3.forward * _gridWorldSize.z / 2f;
 
+
             for (int x = 0; x < _gridSize.x; x++)
             {
                 for (int y = 0; y < _gridSize.y; y++)
@@ -84,7 +89,7 @@ namespace Dreambound.Astar
                         Vector3 worldPoint = worldBottomLeft + Vector3.right * (x * _nodeDiameter + _nodeRadius) + Vector3.up * (y * _nodeDiameter + _nodeRadius) + Vector3.forward * (z * _nodeDiameter + _nodeRadius);
 
                         bool walkable = !(Physics.CheckSphere(worldPoint, _nodeRadius, _unwalkableMask, QueryTriggerInteraction.Ignore));
-
+                        bool floatingNode = !Physics.CheckSphere(worldPoint, _nodeRadius);
 
                         //Find movement penalty
                         int movementPenalty = 0;
@@ -102,26 +107,23 @@ namespace Dreambound.Astar
                             movementPenalty += _obstacleProximityPenalty;
                         }
 
-                        _grid[x, y, z] = new Node(walkable, worldPoint, x, y, z, movementPenalty);
+                        _grid[x, y, z] = new Node(walkable, worldPoint, x, y, z, movementPenalty, floatingNode);
                     }
                 }
             }
 
             BlurPenaltyMap();
-
-            //_stopwatch.Stop();
-            //Debug.LogError(_stopwatch.ElapsedMilliseconds);
         }
         private void BlurPenaltyMap()
         {
             int kernelSize = _blurSize * 2 - 1;
             int kernelExtends = (kernelSize - 1) / 2;
 
-            for(int y = 0; y < _gridSize.y; y++)
+            for (int y = 0; y < _gridSize.y; y++)
             {
-                for(int x = 0; x < _gridSize.x; x++)
+                for (int x = 0; x < _gridSize.x; x++)
                 {
-                    for(int z = 0; z < _gridSize.z; z++)
+                    for (int z = 0; z < _gridSize.z; z++)
                     {
                         int totalPenalty = 0;
                         for (int rangeX = -kernelExtends; rangeX <= kernelExtends; rangeX++)
@@ -150,12 +152,6 @@ namespace Dreambound.Astar
                     }
                 }
             }
-        }
-        private void CalculateObstacleAvoidance()
-        {
-            //Get largest range of agents
-
-            //Get all the nodes that are too close to the objects in the grid range, and set them to unwalkable
         }
 
         public List<Node> GetNeigbours(Node node)
@@ -203,6 +199,57 @@ namespace Dreambound.Astar
             return _grid[x, y, z];
         }
 
+#if UNITY_EDITOR
+        private void GetGridEdgeNodes()
+        {
+            _gridEdgeNodes = new List<Node>();
+            _edgeNodeLevels = new Dictionary<int, Vector3[]>();
+
+            for (int y = 0; y < _gridSize.y; y++)
+            {
+                List<Vector3> edgeNodesOnY = new List<Vector3>();
+                for (int x = 0; x < _gridSize.x; x++)
+                {
+                    for (int z = 0; z < _gridSize.z; z++)
+                    {
+                        if (!_grid[x, y, z].IsFloatingNode)
+                        {
+                            Node[] neighbours = Get2DNeigbours(_grid[x, y, z]);
+                            if (neighbours.Length > 5)
+                            {
+                                _grid[x, y, z].IsEdgeNode = true;
+                            }
+                        }
+                    }
+                }
+                _edgeNodeLevels.Add(y, edgeNodesOnY.ToArray());
+            }
+        }
+        private Node[] Get2DNeigbours(Node node)
+        {
+            List<Node> neighbours = new List<Node>();
+
+            for (int x = -1; x <= 1; x++)
+            {
+                for (int z = -1; z <= 1; z++)
+                {
+                    if (x == 0 && z == 0)
+                        continue;
+
+                    int checkX = node.GridPosition.x + x;
+                    int checkY = node.GridPosition.y;
+                    int checkZ = node.GridPosition.z + z;
+
+                    //Check if X,Y,Z are inside the grid
+                    if ((checkX >= 0 && checkX < _gridSize.x) && (checkY >= 0 && checkY < _gridSize.y) && (checkZ >= 0 && checkZ < _gridSize.z))
+                    {
+                        neighbours.Add(_grid[checkX, checkY, checkZ]);
+                    }
+                }
+            }
+
+            return neighbours.ToArray();
+        }
         private void OnDrawGizmos()
         {
             Gizmos.DrawWireCube(transform.position, _gridWorldSize);
@@ -211,17 +258,19 @@ namespace Dreambound.Astar
             {
                 foreach (Node node in _grid)
                 {
-                    if (node.GridPosition.y == 1)
+                    if (!node.IsFloatingNode)
                     {
                         Gizmos.color = Color.Lerp(Color.white, Color.black, Mathf.InverseLerp(_penaltyMin, _penaltyMax, node.MovementPenalty));
 
                         //Change color if depending if the node is walkable
+                        Gizmos.color = (node.IsEdgeNode) ? Gizmos.color : Color.blue;
                         Gizmos.color = (node.Walkable) ? Gizmos.color : Color.red;
                         Gizmos.DrawCube(node.WorldPosition, Vector3.one * (_nodeDiameter - .1f));
                     }
                 }
             }
         }
+#endif
 
         public int MaxSize
         {
