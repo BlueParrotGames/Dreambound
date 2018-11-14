@@ -1,39 +1,39 @@
 ﻿using System;
-using System.Collections;
+using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine;
+
+using Debug = UnityEngine.Debug;
 
 namespace Dreambound.Astar
 {
     public class PathFinding : MonoBehaviour
     {
         private Grid _grid;
-        private PathRequestManagar _requestManagar;
+        private PathRequestManager _requestManager;
 
         private void Awake()
         {
             _grid = GetComponent<Grid>();
-            _requestManagar = GetComponent<PathRequestManagar>();
+            _requestManager = GetComponent<PathRequestManager>();
         }
 
-        public void StartFindPath(Vector3 startPos, Vector3 targetPos)
+        public void FindPath(PathRequest request, Action<PathResult> callback)
         {
-            StartCoroutine(FindPath(startPos, targetPos));
-        }
-        private IEnumerator FindPath(Vector3 startPosition, Vector3 targetPosition)
-        {
-            List<Node> path = new List<Node>();
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
             Vector3[] waypoints = new Vector3[0];
-            bool pathSucces = false;
+            bool pathSuccess = false;
 
-            Node startNode = _grid.GetNodeFromWorldPoint(startPosition);
-            Node targetNode = _grid.GetNodeFromWorldPoint(targetPosition);
+            Node startNode = _grid.GetNodeFromWorldPoint(request.PathStart);
+            Node targetNode = _grid.GetNodeFromWorldPoint(request.PathEnd);
+            startNode.Parent = startNode;
 
             if (startNode.Walkable && targetNode.Walkable)
             {
                 Heap<Node> openSet = new Heap<Node>(_grid.MaxSize);
                 HashSet<Node> closedSet = new HashSet<Node>();
-
                 openSet.Add(startNode);
 
                 while (openSet.Count > 0)
@@ -43,8 +43,9 @@ namespace Dreambound.Astar
 
                     if (currentNode == targetNode)
                     {
-                        pathSucces = true;
-
+                        stopwatch.Stop();
+                        //Debug.Log("Path found: " + stopwatch.ElapsedMilliseconds + " ms");
+                        pathSuccess = true;
                         break;
                     }
 
@@ -53,10 +54,10 @@ namespace Dreambound.Astar
                         if (!neigbour.Walkable || closedSet.Contains(neigbour))
                             continue;
 
-                        int newMovementCostToNeighbour = currentNode.gCost + GetDistance(currentNode, neigbour) + neigbour.MovementPenalty;
-                        if (newMovementCostToNeighbour < neigbour.gCost || !openSet.Contains(neigbour))
+                        int newMovementCostToNeigbour = currentNode.gCost + GetDistance(currentNode, neigbour) + neigbour.MovementPenalty;
+                        if(newMovementCostToNeigbour < neigbour.gCost || !openSet.Contains(neigbour))
                         {
-                            neigbour.gCost = newMovementCostToNeighbour;
+                            neigbour.gCost = newMovementCostToNeigbour;
                             neigbour.hCost = GetDistance(neigbour, targetNode);
                             neigbour.Parent = currentNode;
 
@@ -69,15 +70,15 @@ namespace Dreambound.Astar
                 }
             }
 
-            yield return null;
-
-            if (pathSucces)
+            if (pathSuccess)
             {
                 waypoints = RetracePath(startNode, targetNode);
+                pathSuccess = waypoints.Length > 0;
             }
 
-            _requestManagar.FinishedProcessingPath(waypoints, pathSucces);
+            callback(new PathResult(waypoints, pathSuccess, request.Callback));
         }
+
         private Vector3[] RetracePath(Node startNode, Node targetNode)
         {
             List<Node> path = new List<Node>();
@@ -100,11 +101,11 @@ namespace Dreambound.Astar
             List<Vector3> waypoints = new List<Vector3>();
             Vector3 oldDirection = Vector3.zero;
 
-            for(int i = 1; i < path.Count; i++)
+            for (int i = 1; i < path.Count; i++)
             {
                 Vector3 newDirection = path[i - 1].WorldPosition - path[i].WorldPosition;
 
-                if(newDirection != oldDirection)
+                if (newDirection != oldDirection)
                 {
                     waypoints.Add(path[i].WorldPosition);
                 }

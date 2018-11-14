@@ -1,6 +1,7 @@
-﻿using System.Diagnostics;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
+
+using Dreambound.Astar.Data;
 
 using Debug = UnityEngine.Debug;
 
@@ -15,6 +16,9 @@ namespace Dreambound.Astar
         [Header("Weight settings")]
         [SerializeField] private int _obstacleProximityPenalty;
         [SerializeField] private TerrainType[] _walkableRegions;
+
+        [Header("Agent settings")]
+        [SerializeField] private Agent[] _agents;
 
         [Space]
         [SerializeField] private int _blurSize;
@@ -91,12 +95,6 @@ namespace Dreambound.Astar
                             if (Physics.Raycast(ray, out hit, 100, _walkableMask))
                             {
                                 _walkableRegionsDic.TryGetValue(hit.collider.gameObject.layer, out movementPenalty);
-
-                                if (movementPenalty > _penaltyMax)
-                                    _penaltyMax = movementPenalty;
-
-                                if (movementPenalty < _penaltyMin)
-                                    _penaltyMin = movementPenalty;
                             }
                         }
                         else if (!walkable)
@@ -152,6 +150,12 @@ namespace Dreambound.Astar
                     }
                 }
             }
+        }
+        private void CalculateObstacleAvoidance()
+        {
+            //Get largest range of agents
+
+            //Get all the nodes that are too close to the objects in the grid range, and set them to unwalkable
         }
 
         public List<Node> GetNeigbours(Node node)
