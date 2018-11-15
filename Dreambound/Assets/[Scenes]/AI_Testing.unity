@@ -739,13 +739,12 @@ MonoBehaviour:
   - TerrainMask:
       serializedVersion: 2
       m_Bits: 1024
-    TerrainPenalty: 10
+    TerrainPenalty: 3
   _agents:
   - Name: Human
     Radius: 0.5
     Height: 2
   _blurSize: 3
-  _displayGridGizmos: 1
 --- !u!4 &2037787839
 Transform:
   m_ObjectHideFlags: 0

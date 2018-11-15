@@ -23,7 +23,6 @@ namespace Dreambound.Astar
 
         [Space]
         [SerializeField] private int _blurSize;
-        [SerializeField] private bool _displayGridGizmos;
 
         private Vector3Int _gridSize;
         private Node[,,] _grid;
@@ -34,10 +33,6 @@ namespace Dreambound.Astar
 
         int _penaltyMin = int.MaxValue;
         int _penaltyMax = int.MinValue;
-
-        //Debugging
-        private List<Node> _gridEdgeNodes;
-        Dictionary<int, Vector3[]> _edgeNodeLevels;
 
         private void Awake()
         {
@@ -63,10 +58,6 @@ namespace Dreambound.Astar
             }
 
             GenerateGrid();
-
-#if UNITY_EDITOR
-            GetGridEdgeNodes();
-#endif
         }
 
         private void GenerateGrid()
@@ -107,7 +98,7 @@ namespace Dreambound.Astar
                             movementPenalty += _obstacleProximityPenalty;
                         }
 
-                        _grid[x, y, z] = new Node(walkable, worldPoint, x, y, z, movementPenalty, floatingNode);
+                        _grid[x, y, z] = new Node(walkable, worldPoint, x, y, z, movementPenalty);
                     }
                 }
             }
@@ -198,83 +189,14 @@ namespace Dreambound.Astar
 
             return _grid[x, y, z];
         }
-
-#if UNITY_EDITOR
-        private void GetGridEdgeNodes()
-        {
-            _gridEdgeNodes = new List<Node>();
-            _edgeNodeLevels = new Dictionary<int, Vector3[]>();
-
-            for (int y = 0; y < _gridSize.y; y++)
-            {
-                List<Vector3> edgeNodesOnY = new List<Vector3>();
-                for (int x = 0; x < _gridSize.x; x++)
-                {
-                    for (int z = 0; z < _gridSize.z; z++)
-                    {
-                        if (!_grid[x, y, z].IsFloatingNode)
-                        {
-                            Node[] neighbours = Get2DNeigbours(_grid[x, y, z]);
-                            if (neighbours.Length > 5)
-                            {
-                                _grid[x, y, z].IsEdgeNode = true;
-                            }
-                        }
-                    }
-                }
-                _edgeNodeLevels.Add(y, edgeNodesOnY.ToArray());
-            }
-        }
-        private Node[] Get2DNeigbours(Node node)
-        {
-            List<Node> neighbours = new List<Node>();
-
-            for (int x = -1; x <= 1; x++)
-            {
-                for (int z = -1; z <= 1; z++)
-                {
-                    if (x == 0 && z == 0)
-                        continue;
-
-                    int checkX = node.GridPosition.x + x;
-                    int checkY = node.GridPosition.y;
-                    int checkZ = node.GridPosition.z + z;
-
-                    //Check if X,Y,Z are inside the grid
-                    if ((checkX >= 0 && checkX < _gridSize.x) && (checkY >= 0 && checkY < _gridSize.y) && (checkZ >= 0 && checkZ < _gridSize.z))
-                    {
-                        neighbours.Add(_grid[checkX, checkY, checkZ]);
-                    }
-                }
-            }
-
-            return neighbours.ToArray();
-        }
-        private void OnDrawGizmos()
-        {
-            Gizmos.DrawWireCube(transform.position, _gridWorldSize);
-
-            if (_grid != null && _displayGridGizmos)
-            {
-                foreach (Node node in _grid)
-                {
-                    if (!node.IsFloatingNode)
-                    {
-                        Gizmos.color = Color.Lerp(Color.white, Color.black, Mathf.InverseLerp(_penaltyMin, _penaltyMax, node.MovementPenalty));
-
-                        //Change color if depending if the node is walkable
-                        Gizmos.color = (node.IsEdgeNode) ? Gizmos.color : Color.blue;
-                        Gizmos.color = (node.Walkable) ? Gizmos.color : Color.red;
-                        Gizmos.DrawCube(node.WorldPosition, Vector3.one * (_nodeDiameter - .1f));
-                    }
-                }
-            }
-        }
-#endif
-
+        
         public int MaxSize
         {
             get { return _gridSize.x * _gridSize.y * _gridSize.z; }
+        }
+        public Node[,,] Nodes
+        {
+            get { return _grid; }
         }
     }
 }
