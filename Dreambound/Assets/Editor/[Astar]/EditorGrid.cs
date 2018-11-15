@@ -11,23 +11,35 @@ namespace Dreambound.Astar.Editor
     {
         private GameObject _targetObject;
         private Grid _grid;
-        private Node[,,] _nodes;
+        private static Node[,,] _nodes;
+
+        private static Vector3Int _gridSize;
+        private static float _nodeDiameter;
+
+        private static EditorGrid _instance;
 
         [DrawGizmo(GizmoType.Selected | GizmoType.NonSelected)]
-        static void DrawGizmosSelected(Grid grid, GizmoType gizmoType)
+        private static void DrawGizmosSelected(Grid grid, GizmoType gizmoType)
         {
+            //just use gismos here
         }
 
         private void OnSceneGUI()
         {
-            _grid = target as Grid;
-            _targetObject = _grid.gameObject;
+            _targetObject = ((Grid)target).gameObject;
+            _instance = this;
 
             _nodes = EditorGridGenerator.GenerateGrid(GetGenerationSettings());
         }
 
-        private GridGenerateSettings GetGenerationSettings()
+        public static void GenerateGrid()
         {
+            _nodes = EditorGridGenerator.GenerateGrid(_instance.GetGenerationSettings());
+        }
+
+        GridGenerateSettings GetGenerationSettings()
+        {
+            //Get all the variables needed for generation
             LayerMask unwalkableMask = serializedObject.FindProperty("_unwalkableMask").intValue;
             Vector3 gridWorldSize = serializedObject.FindProperty("_gridWorldSize").vector3Value;
             float nodeRadius = serializedObject.FindProperty("_nodeRadius").floatValue;
@@ -44,6 +56,12 @@ namespace Dreambound.Astar.Editor
                     TerrainPenalty = serializedObject.FindProperty("_walkableRegions").GetArrayElementAtIndex(i).FindPropertyRelative("TerrainPenalty").intValue,
                 };
             }
+
+            //Set the gridsize
+            _nodeDiameter = nodeRadius * 2f;
+            _gridSize.x = Mathf.RoundToInt(gridWorldSize.x / _nodeDiameter);
+            _gridSize.y = Mathf.RoundToInt(gridWorldSize.y / _nodeDiameter);
+            _gridSize.z = Mathf.RoundToInt(gridWorldSize.z / _nodeDiameter);
 
             return new GridGenerateSettings(unwalkableMask, gridWorldSize, nodeRadius, blurSize, obstacleProximityPenalty, walkableRegions, _targetObject.transform);
         }
