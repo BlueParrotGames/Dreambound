@@ -7,9 +7,13 @@ namespace Dreambound.Astar.Editor
     public class EditorNode
     {
         public bool Walkable;
+        public bool IsEdgeNode;
+
         public readonly Vector3 WorldPosition;
         public readonly Vector3Int GridPosition;
         public readonly bool IsFloatingNode;
+
+        public EditorNode Parent;
 
         public EditorNode(bool walkable, Vector3 worldPosition, Vector3Int gridPosition, bool isFloatingNode)
         {

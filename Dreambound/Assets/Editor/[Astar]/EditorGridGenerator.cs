@@ -6,17 +6,19 @@ namespace Dreambound.Astar.Editor
 {
     public class EditorGridGenerator
     {
-        private static Node[,,] _grid;
+        private static EditorGrid _grid;
+        private static Vector3Int _gridSize;
+
         private static GridGenerateSettings _previousGenerationSettings;
         private static ThreadStart _generationThread;
 
-        public static Node[,,] GenerateGrid(GridGenerateSettings generateSettings)
+        public static EditorGrid GenerateGrid(GridGenerateSettings generateSettings)
         {
 
             if (_generationThread == null)
                 _generationThread = delegate
                 {
-                    GenerateNodes(out _grid, generateSettings);
+                    GenerateNodes(generateSettings);
                 };
 
             if (_previousGenerationSettings == generateSettings)
@@ -29,20 +31,19 @@ namespace Dreambound.Astar.Editor
             return _grid;
         }
 
-        private static void GenerateNodes(out Node[,,] nodes, GridGenerateSettings generateSettings)
+        private static void GenerateNodes(GridGenerateSettings generateSettings)
         {
             float nodeDiameter = generateSettings.NodeRadius * 2f;
 
-            Vector3Int gridSize = Vector3Int.zero;
-            gridSize.x = Mathf.RoundToInt(generateSettings.GridWorldSize.x / nodeDiameter);
-            gridSize.y = Mathf.RoundToInt(generateSettings.GridWorldSize.y / nodeDiameter);
-            gridSize.z = Mathf.RoundToInt(generateSettings.GridWorldSize.z / nodeDiameter);
+            _gridSize.x = Mathf.RoundToInt(generateSettings.GridWorldSize.x / nodeDiameter);
+            _gridSize.y = Mathf.RoundToInt(generateSettings.GridWorldSize.y / nodeDiameter);
+            _gridSize.z = Mathf.RoundToInt(generateSettings.GridWorldSize.z / nodeDiameter);
 
             LayerMask walkableMask = 0;
             Dictionary<int, int> _walkableReagionsDictionary;
 
-            if (gridSize.y % 2 == 0)
-                gridSize.y += 1;
+            if (_gridSize.y % 2 == 0)
+                _gridSize.y += 1;
 
             _walkableReagionsDictionary = new Dictionary<int, int>();
             foreach (TerrainType region in generateSettings.WalkableRegions)
@@ -53,18 +54,18 @@ namespace Dreambound.Astar.Editor
                 _walkableReagionsDictionary.Add(key, region.TerrainPenalty);
             }
 
-            nodes = new Node[gridSize.x, gridSize.y, gridSize.z];
+            EditorNode[,,] nodes = new EditorNode[_gridSize.x, _gridSize.y, _gridSize.z];
 
             //Calculate the position of the grid far bottom left corner
             Vector3 worldBottomLeft = Vector3.zero;
             worldBottomLeft = generateSettings.Object.position - Vector3.right * generateSettings.GridWorldSize.x / 2f - Vector3.up * generateSettings.GridWorldSize.y / 2f -
             worldBottomLeft - Vector3.forward * generateSettings.GridWorldSize.z / 2f;
 
-            for (int x = 0; x < gridSize.x; x++)
+            for (int x = 0; x < _gridSize.x; x++)
             {
-                for (int y = 0; y < gridSize.y; y++)
+                for (int y = 0; y < _gridSize.y; y++)
                 {
-                    for (int z = 0; z < gridSize.z; z++)
+                    for (int z = 0; z < _gridSize.z; z++)
                     {
                         //Calculate the worldpoint of the current node
                         Vector3 worldPoint = worldBottomLeft + Vector3.right * (x * nodeDiameter + generateSettings.NodeRadius) + Vector3.up * (y * nodeDiameter + generateSettings.NodeRadius) + Vector3.forward * (z * nodeDiameter + generateSettings.NodeRadius);
@@ -72,61 +73,98 @@ namespace Dreambound.Astar.Editor
                         bool walkable = !(Physics.CheckSphere(worldPoint, generateSettings.NodeRadius, generateSettings.UnwalkableMask, QueryTriggerInteraction.Ignore));
                         bool floatingNode = !Physics.CheckSphere(worldPoint, generateSettings.NodeRadius);
 
-                        //Find movement penalty
-                        int movementPenalty = 0;
-                        if (walkable)
-                        {
-                            Ray ray = new Ray(worldPoint + Vector3.up * 50, Vector3.down);
-                            RaycastHit hit;
-                            if (Physics.Raycast(ray, out hit, 100, walkableMask))
-                            {
-                                _walkableReagionsDictionary.TryGetValue(hit.collider.gameObject.layer, out movementPenalty);
-                            }
-                        }
-                        else if (!walkable)
-                        {
-                            movementPenalty += generateSettings.ObstacleProximityPenalty;
-                        }
-
-                        nodes[x, y, z] = new Node(walkable, worldPoint, x, y, z, movementPenalty);
+                        nodes[x, y, z] = new EditorNode(walkable, worldPoint, x, y, z, floatingNode);
                     }
                 }
             }
 
-            BlurPenaltyMap(generateSettings.BlurSize, gridSize, ref nodes);
+            CalculateEdgeNodes(ref nodes);
+
+            _grid = new EditorGrid(nodes, _gridSize);
         }
-        private static void BlurPenaltyMap(int blurSize, Vector3Int gridSize, ref Node[,,] grid)
+
+        private static void CalculateEdgeNodes(ref EditorNode[,,] nodes)
         {
-            int kernelSize = blurSize * 2 - 1;
-            int kernelExtends = (kernelSize - 1) / 2;
-
-            for (int y = 0; y < gridSize.y; y++)
+            for (int x = 0; x < _gridSize.x; x++)
             {
-                for (int x = 0; x < gridSize.x; x++)
+                for (int y = 0; y < _gridSize.y; y++)
                 {
-                    for (int z = 0; z < gridSize.z; z++)
+                    for (int z = 0; z < _gridSize.z; z++)
                     {
-                        int totalPenalty = 0;
-                        for (int rangeX = -kernelExtends; rangeX <= kernelExtends; rangeX++)
+                        if (!nodes[x, y, z].IsFloatingNode)
                         {
-                            for (int rangeY = -kernelExtends; rangeY <= kernelExtends; rangeY++)
-                            {
-                                for (int rangeZ = -kernelExtends; rangeZ <= kernelExtends; rangeZ++)
-                                {
-                                    int sampleX = Mathf.Clamp(rangeX + x, 0, gridSize.x - 1);
-                                    int sampleY = Mathf.Clamp(rangeY + y, 0, gridSize.y - 1);
-                                    int sampleZ = Mathf.Clamp(rangeZ + z, 0, gridSize.z - 1);
+                            List<EditorNode> neighbours2D = Get2DNodeNeigbours(x, y, z, nodes);
+                            List<EditorNode> neighbours3D = Get3DNodeNeigbours(x, y, z, nodes);
 
-                                    totalPenalty += grid[sampleX, sampleY, sampleZ].MovementPenalty;
+                            //Get the Outer-edge nodes
+                            if (neighbours2D.Count < 6)
+                                nodes[x, y, z].IsEdgeNode = true;
+
+                            //Get the Inner-edge nodes
+                            for (int i = 0; i < neighbours3D.Count; i++)
+                            {
+                                if (!neighbours3D[i].Walkable)
+                                {
+                                    nodes[x, y, z].IsEdgeNode = true;
+                                    continue;
                                 }
                             }
                         }
-
-                        int blurredPenalty = Mathf.RoundToInt((float)totalPenalty / (kernelSize * kernelSize * kernelSize));
-                        grid[x, y, z].MovementPenalty = blurredPenalty;
                     }
                 }
             }
+        }
+        private static List<EditorNode> Get3DNodeNeigbours(int nodeX, int nodeY, int nodeZ, EditorNode[,,] nodes)
+        {
+            List<EditorNode> neighbours = new List<EditorNode>();
+
+            for (int x = -1; x <= 1; x++)
+            {
+                for (int y = -1; y <= 1; y++)
+                {
+                    for (int z = -1; z <= 1; z++)
+                    {
+                        if (x == 0 && y == 0 && z == 0)
+                            continue;
+
+                        int checkX = nodeX + x;
+                        int checkY = nodeY + y;
+                        int checkZ = nodeZ + z;
+
+                        //Check if X,Y,Z are inside the grid
+                        if ((checkX >= 0 && checkX < _gridSize.x) && (checkY >= 0 && checkY < _gridSize.y) && (checkZ >= 0 && checkZ < _gridSize.z))
+                        {
+                            neighbours.Add(nodes[checkX, checkY, checkZ]);
+                        }
+                    }
+                }
+            }
+
+            return neighbours;
+        }
+        private static List<EditorNode> Get2DNodeNeigbours(int nodeX, int nodeY, int nodeZ, EditorNode[,,] nodes)
+        {
+            List<EditorNode> neighbours = new List<EditorNode>();
+
+            for (int x = -1; x <= 1; x++)
+            {
+                for (int z = -1; z <= 1; z++)
+                {
+                    if (x == 0 && z == 0)
+                        continue;
+
+                    int checkX = nodeX + x;
+                    int checkZ = nodeZ + z;
+
+                    //Check if X,Y,Z are inside the grid
+                    if ((checkX >= 0 && checkX < _gridSize.x) && (checkZ >= 0 && checkZ < _gridSize.z))
+                    {
+                        neighbours.Add(nodes[checkX, nodeY, checkZ]);
+                    }
+                }
+            }
+
+            return neighbours;
         }
     }
 
