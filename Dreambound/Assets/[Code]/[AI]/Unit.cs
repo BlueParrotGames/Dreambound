@@ -19,10 +19,14 @@ namespace Dreambound.AI
 
         [SerializeField] private bool _drawPathGizmos;
 
+        private Vector3 _moveDirection;
+
         private Path _path;
+        private CharacterController _controller;
 
         private void Start()
         {
+            _controller = GetComponent<CharacterController>();
             StartCoroutine(UpdatePath());
         }
 
@@ -66,7 +70,6 @@ namespace Dreambound.AI
 
             transform.LookAt(_path.LookPoints[0]);
 
-
             float speedPercent = 1;
 
             while (followingPath)
@@ -96,9 +99,16 @@ namespace Dreambound.AI
                         }
                     }
 
-                    Quaternion targetRotation = Quaternion.LookRotation(_path.LookPoints[pathIndex] - transform.position);
+                    Vector3 targetLookAt = _path.LookPoints[pathIndex];
+                    targetLookAt.y = 0;
+
+                    Quaternion targetRotation = Quaternion.LookRotation(targetLookAt - new Vector3(transform.position.x, 0, transform.position.z));
                     transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, _turnSpeed * Time.deltaTime);
-                    transform.Translate(Vector3.forward * _speed * speedPercent * Time.deltaTime, Space.Self);
+
+                    _moveDirection = transform.forward;
+                    _moveDirection.y = -1f;
+
+                    _controller.Move(_moveDirection * _speed * speedPercent * Time.deltaTime);
                 }
 
                 yield return null;

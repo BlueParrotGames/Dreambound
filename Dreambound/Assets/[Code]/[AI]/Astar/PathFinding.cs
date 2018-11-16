@@ -55,7 +55,7 @@ namespace Dreambound.Astar
                             continue;
 
                         int newMovementCostToNeigbour = currentNode.gCost + GetDistance(currentNode, neigbour) + neigbour.MovementPenalty;
-                        if(newMovementCostToNeigbour < neigbour.gCost || !openSet.Contains(neigbour))
+                        if (newMovementCostToNeigbour < neigbour.gCost || !openSet.Contains(neigbour))
                         {
                             neigbour.gCost = newMovementCostToNeigbour;
                             neigbour.hCost = GetDistance(neigbour, targetNode);
@@ -113,6 +113,16 @@ namespace Dreambound.Astar
             }
 
             return waypoints.ToArray();
+        }
+        private float GetGroundHeightAtNode(Node node)
+        {
+            RaycastHit hit;
+            if (Physics.Raycast(node.WorldPosition, Vector3.down * 50f, out hit))
+            {
+                return hit.point.y;
+            }
+
+            return 0;
         }
 
         private int GetDistance(Node node1, Node node2)

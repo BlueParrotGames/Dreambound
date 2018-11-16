@@ -5,9 +5,13 @@ namespace Dreambound.Astar
     public class Node : IHeapItem<Node>
     {
         public bool Walkable;
-        public Vector3 WorldPosition;
-        public Vector3Int GridPosition;
         public int MovementPenalty;
+        public bool SlopeAccessNode;
+
+        public readonly Vector3 GroundPosition;
+        public readonly Vector3 WorldPosition;
+        public readonly Vector3Int GridPosition;
+        public readonly bool GroundNode;
 
         public int gCost;
         public int hCost;
@@ -16,19 +20,23 @@ namespace Dreambound.Astar
         private int _heapIndex;
         public int HeapIndex { get => _heapIndex; set => _heapIndex = value; }
 
-        public Node(bool walkable, Vector3 worldPosition, Vector3Int gridPosition, int penalty)
+        public Node(bool walkable, Vector3 worldPosition, Vector3Int gridPosition, int penalty, bool groundNode, Vector3 groundPosition)
         {
             Walkable = walkable;
             WorldPosition = worldPosition;
             GridPosition = gridPosition;
             MovementPenalty = penalty;
+            GroundNode = groundNode;
+            GroundPosition = groundPosition;
         }
-        public Node(bool walkable, Vector3 worldPosition, int x, int y, int z, int penalty)
+        public Node(bool walkable, Vector3 worldPosition, int x, int y, int z, int penalty, bool groundNode, Vector3 groundPosition)
         {
             Walkable = walkable;
             WorldPosition = worldPosition;
             GridPosition = new Vector3Int(x, y ,z);
             MovementPenalty = penalty;
+            GroundNode = groundNode;
+            GroundPosition = groundPosition; 
         }
 
         public int fCost

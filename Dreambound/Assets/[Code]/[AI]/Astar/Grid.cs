@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 using Dreambound.Astar.Data;
+using Dreambound.AI;
 
 using Debug = UnityEngine.Debug;
 
@@ -20,6 +20,8 @@ namespace Dreambound.Astar
 
         [Header("Agent settings")]
         [SerializeField] private Agent[] _agents;
+        [SerializeField] private float _agentHeight;
+        [SerializeField] private float _agentMaxStepHeight;
 
         [Space]
         [SerializeField] private int _blurSize;
@@ -31,11 +33,15 @@ namespace Dreambound.Astar
         private LayerMask _walkableMask;
         private Dictionary<int, int> _walkableRegionsDic;
 
-        int _penaltyMin = int.MaxValue;
-        int _penaltyMax = int.MinValue;
+        private int _penaltyMin = int.MaxValue;
+        private int _penaltyMax = int.MinValue;
+
+        private Unit[] _units;
 
         private void Awake()
         {
+            _units = FindObjectsOfType<Unit>();
+
             _nodeDiameter = _nodeRadius * 2f;
             _gridSize.x = Mathf.RoundToInt(_gridWorldSize.x / _nodeDiameter);
             _gridSize.y = Mathf.RoundToInt(_gridWorldSize.y / _nodeDiameter);
@@ -79,18 +85,42 @@ namespace Dreambound.Astar
                         //Calculate the worldpoint of the current node
                         Vector3 worldPoint = worldBottomLeft + Vector3.right * (x * _nodeDiameter + _nodeRadius) + Vector3.up * (y * _nodeDiameter + _nodeRadius) + Vector3.forward * (z * _nodeDiameter + _nodeRadius);
 
+                        //Check if the node is within or too close to an obstacle
+                        //If so set the node to non-walkable
                         bool walkable = !(Physics.CheckSphere(worldPoint, _nodeRadius, _unwalkableMask, QueryTriggerInteraction.Ignore));
-                        bool floatingNode = !Physics.CheckSphere(worldPoint, _nodeRadius);
+
+                        //If the node is originaly walkable check if the passage way isn'y too low for the agent
+                        //If it is set walkable to false
+                        if (walkable)
+                        {
+                            if (Physics.Raycast(worldPoint, Vector3.up * _agentHeight, out RaycastHit hitUp))
+                            {
+                                if (Physics.Raycast(worldPoint, Vector3.down * _agentHeight, out RaycastHit hitDown))
+                                {
+                                    walkable = !(hitUp.point.y - hitDown.point.y < _agentHeight);
+                                }
+                            }
+                        }
+
+                        //Check if the node is a ground node
+                        //If so set the nodes groundPosition
+                        Ray groundRay = new Ray(worldPoint, Vector3.down);
+                        Vector3 groundPosition = Vector3.zero;
+                        bool groundNode = false;
+                        if (Physics.Raycast(groundRay, out RaycastHit groundHit, _nodeDiameter))
+                        {
+                            groundNode = true;
+                            groundPosition = groundHit.point;
+                        }
 
                         //Find movement penalty
                         int movementPenalty = 0;
                         if (walkable)
                         {
                             Ray ray = new Ray(worldPoint + Vector3.up * 50, Vector3.down);
-                            RaycastHit hit;
-                            if (Physics.Raycast(ray, out hit, 100, _walkableMask))
+                            if (Physics.Raycast(ray, out RaycastHit penaltyHit, 100, _walkableMask))
                             {
-                                _walkableRegionsDic.TryGetValue(hit.collider.gameObject.layer, out movementPenalty);
+                                _walkableRegionsDic.TryGetValue(penaltyHit.collider.gameObject.layer, out movementPenalty);
                             }
                         }
                         else if (!walkable)
@@ -98,12 +128,26 @@ namespace Dreambound.Astar
                             movementPenalty += _obstacleProximityPenalty;
                         }
 
-                        _grid[x, y, z] = new Node(walkable, worldPoint, x, y, z, movementPenalty);
+                        _grid[x, y, z] = new Node(walkable, worldPoint, x, y, z, movementPenalty, groundNode, groundPosition);
                     }
                 }
             }
 
+            CalculateSlopeStartNodes();
             BlurPenaltyMap();
+        }
+        private void CalculateSlopeStartNodes()
+        {
+            for (int x = 0; x < _gridSize.x; x++)
+            {
+                for (int y = 0; y < _gridSize.y; y++)
+                {
+                    for (int z = 0; z < _gridSize.z; z++)
+                    {
+
+                    }
+                }
+            }
         }
         private void BlurPenaltyMap()
         {
@@ -189,7 +233,37 @@ namespace Dreambound.Astar
 
             return _grid[x, y, z];
         }
-        
+
+        private void OnDrawGizmos()
+        {
+            if (_grid != null)
+            {
+                for (int x = 0; x < _gridSize.x; x++)
+                {
+                    for (int y = 0; y < _gridSize.y; y++)
+                    {
+                        for (int z = 0; z < _gridSize.z; z++)
+                        {
+                            Gizmos.color = Color.gray;
+                            Gizmos.color = (_grid[x, y, z].GroundNode) ? Color.blue : Gizmos.color;
+                            Gizmos.color = (_grid[x, y, z].SlopeAccessNode) ? Color.yellow : Gizmos.color;
+                            Gizmos.color = (_grid[x, y, z].Walkable) ? Gizmos.color : Color.red;
+
+                            if (!_grid[x, y, z].Walkable || _grid[x, y, z].GroundNode || _grid[x,y,z].SlopeAccessNode)
+                                Gizmos.DrawCube(_grid[x, y, z].WorldPosition, Vector3.one * (_nodeDiameter - 0.1f));
+                        }
+                    }
+                }
+
+                for(int i = 0; i < _units.Length; i++)
+                {
+                    Gizmos.color = Color.green;
+
+                    Gizmos.DrawCube(_units[i].transform.position, Vector3.one * (_nodeDiameter - 0.1f));
+                }
+            }
+        }
+
         public int MaxSize
         {
             get { return _gridSize.x * _gridSize.y * _gridSize.z; }
