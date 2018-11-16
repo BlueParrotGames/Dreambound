@@ -28,8 +28,6 @@ namespace Dreambound.Astar.Editor
         {
             _targetObject = ((Grid)target).gameObject;
             _instance = this;
-
-            _nodes = EditorGridGenerator.GenerateGrid(GetGenerationSettings());
         }
 
         public static void GenerateGrid()
