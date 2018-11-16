@@ -10,11 +10,10 @@ namespace Dreambound.Astar.Editor
     public class EditorGrid : UnityEditor.Editor
     {
         private GameObject _targetObject;
-        private Grid _grid;
-        private static Node[,,] _nodes;
+        private Node[,,] _nodes;
 
-        private static Vector3Int _gridSize;
-        private static float _nodeDiameter;
+        private Vector3Int _gridSize;
+        private float _nodeDiameter;
 
         private static EditorGrid _instance;
 
@@ -24,18 +23,15 @@ namespace Dreambound.Astar.Editor
             //just use gismos here
         }
 
-        private void OnSceneGUI()
-        {
-            _targetObject = ((Grid)target).gameObject;
-            _instance = this;
-        }
-
         public static void GenerateGrid()
         {
-            _nodes = EditorGridGenerator.GenerateGrid(_instance.GetGenerationSettings());
+            if(_instance == null)
+                _instance = (EditorGrid)CreateEditor(FindObjectOfType<Grid>());
+
+            _instance._nodes = EditorGridGenerator.GenerateGrid(_instance.GetGenerationSettings());
         }
 
-        GridGenerateSettings GetGenerationSettings()
+        private GridGenerateSettings GetGenerationSettings()
         {
             //Get all the variables needed for generation
             LayerMask unwalkableMask = serializedObject.FindProperty("_unwalkableMask").intValue;
@@ -60,6 +56,9 @@ namespace Dreambound.Astar.Editor
             _gridSize.x = Mathf.RoundToInt(gridWorldSize.x / _nodeDiameter);
             _gridSize.y = Mathf.RoundToInt(gridWorldSize.y / _nodeDiameter);
             _gridSize.z = Mathf.RoundToInt(gridWorldSize.z / _nodeDiameter);
+
+            if(_targetObject == null)
+                _targetObject = ((Grid)target).gameObject;
 
             return new GridGenerateSettings(unwalkableMask, gridWorldSize, nodeRadius, blurSize, obstacleProximityPenalty, walkableRegions, _targetObject.transform);
         }

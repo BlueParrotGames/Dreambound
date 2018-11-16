@@ -24,6 +24,7 @@ namespace Dreambound.Astar.Editor
 
         private void OnGUI()
         {
+            EditorGUILayout.Space();
             if(GUILayout.Button("Generate Grid"))
             {
                 EditorGrid.GenerateGrid();
