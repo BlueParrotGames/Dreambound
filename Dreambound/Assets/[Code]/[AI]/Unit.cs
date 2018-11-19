@@ -99,16 +99,10 @@ namespace Dreambound.AI
                         }
                     }
 
-                    Vector3 targetLookAt = _path.LookPoints[pathIndex];
-                    targetLookAt.y = 0;
-
-                    Quaternion targetRotation = Quaternion.LookRotation(targetLookAt - new Vector3(transform.position.x, 0, transform.position.z));
+                    Quaternion targetRotation = Quaternion.LookRotation(_path.LookPoints[pathIndex] - transform.position);
                     transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, _turnSpeed * Time.deltaTime);
+                    transform.Translate(Vector3.forward * _speed * speedPercent * Time.deltaTime, Space.Self);
 
-                    _moveDirection = transform.forward;
-                    _moveDirection.y = -1f;
-
-                    _controller.Move(_moveDirection * _speed * speedPercent * Time.deltaTime);
                 }
 
                 yield return null;

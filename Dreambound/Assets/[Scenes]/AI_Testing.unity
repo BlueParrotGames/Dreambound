@@ -196,13 +196,45 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 359072870}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.08, y: 4.59, z: -11.56}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -7.226179, y: 2.19, z: -0.11518288}
   m_LocalScale: {x: 6.2040963, y: 1, z: 5.6641}
   m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_Father: {fileID: 1011491643}
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1011491642
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1011491643}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1011491643
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1011491642}
+  m_LocalRotation: {x: -0, y: -0.420411, z: -0, w: 0.9073338}
+  m_LocalPosition: {x: 7.306179, y: 2.4, z: -11.444818}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 1364150810}
+  - {fileID: 359072874}
+  m_Father: {fileID: 0}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: -49.721, z: 0}
 --- !u!1 &1311149424
 GameObject:
   m_ObjectHideFlags: 0
@@ -229,7 +261,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1311149424}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 0}
+  m_LocalPosition: {x: 0, y: -0.065, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1432861119}
@@ -292,7 +324,7 @@ GameObject:
   - component: {fileID: 1364150809}
   - component: {fileID: 1364150808}
   - component: {fileID: 1364150807}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -365,11 +397,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1364150806}
   m_LocalRotation: {x: -0, y: -0, z: 0.518013, w: 0.8553728}
-  m_LocalPosition: {x: 7.306179, y: 2.4, z: -11.444818}
-  m_LocalScale: {x: 1, y: 12.700571, z: 5.9133}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 12.700575, z: 5.9133}
   m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_Father: {fileID: 1011491643}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 62.398003}
 --- !u!1 &1432861115
 GameObject:
@@ -380,7 +412,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1432861119}
-  - component: {fileID: 1432861116}
   - component: {fileID: 1432861120}
   m_Layer: 0
   m_Name: Enemy
@@ -389,24 +420,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!143 &1432861116
-CharacterController:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1432861115}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Height: 2
-  m_Radius: 0.5
-  m_SlopeLimit: 45
-  m_StepOffset: 0.3
-  m_SkinWidth: 0.08
-  m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 1.001, z: 0}
 --- !u!4 &1432861119
 Transform:
   m_ObjectHideFlags: 0
@@ -415,7 +428,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1432861115}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 15.1, y: 1, z: -10.35}
+  m_LocalPosition: {x: 6.01, y: 0.249, z: 5.28}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1311149425}
@@ -905,7 +918,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2022391559}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.23, y: 8.76, z: -12.05}
+  m_LocalPosition: {x: 0.23, y: 0.075, z: -12.05}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -945,7 +958,7 @@ MonoBehaviour:
   _unwalkableMask:
     serializedVersion: 2
     m_Bits: 256
-  _gridWorldSize: {x: 40, y: 40, z: 40}
+  _gridWorldSize: {x: 100, y: 40, z: 100}
   _nodeRadius: 0.5
   _obstacleProximityPenalty: 40
   _walkableRegions:
@@ -956,13 +969,8 @@ MonoBehaviour:
   - TerrainMask:
       serializedVersion: 2
       m_Bits: 1024
-    TerrainPenalty: 3
-  _agents:
-  - Name: Human
-    Radius: 0.5
-    Height: 2
+    TerrainPenalty: 100
   _agentHeight: 2
-  _agentMaxStepHeight: 0
   _blurSize: 3
 --- !u!4 &2037787839
 Transform:

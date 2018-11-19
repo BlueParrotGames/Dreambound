@@ -6,15 +6,24 @@ namespace Dreambound.Astar
 {
     public class Slope
     {
-        public readonly Node SlopeStart;
-        public readonly Node SlopeEnd;
-        public readonly int SlopeMovementPenalty;
+        public readonly string TransformName;
+        private List<Node> _slopeNodes;
 
-        public Slope(Node slopeStart, Node slopeEnd, int slopeMovemntPenalty)
+        public Slope(string transformName)
         {
-            SlopeStart = slopeStart;
-            SlopeEnd = slopeEnd;
-            SlopeMovementPenalty = slopeMovemntPenalty;
+            TransformName = transformName;
+
+            _slopeNodes = new List<Node>();
+        }
+
+        public void AddNode(Node node)
+        {
+            _slopeNodes.Add(node);
+        }
+
+        public int NodeCount
+        {
+            get { return _slopeNodes.Count; }
         }
     }
 }

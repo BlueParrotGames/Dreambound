@@ -10,19 +10,14 @@ namespace Dreambound.Astar
     public class PathFinding : MonoBehaviour
     {
         private Grid _grid;
-        private PathRequestManager _requestManager;
 
         private void Awake()
         {
             _grid = GetComponent<Grid>();
-            _requestManager = GetComponent<PathRequestManager>();
         }
 
         public void FindPath(PathRequest request, Action<PathResult> callback)
         {
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-
             Vector3[] waypoints = new Vector3[0];
             bool pathSuccess = false;
 
@@ -30,41 +25,39 @@ namespace Dreambound.Astar
             Node targetNode = _grid.GetNodeFromWorldPoint(request.PathEnd);
             startNode.Parent = startNode;
 
-            if (startNode.Walkable && targetNode.Walkable)
+            if(startNode.Walkable && targetNode.Walkable)
             {
                 Heap<Node> openSet = new Heap<Node>(_grid.MaxSize);
                 HashSet<Node> closedSet = new HashSet<Node>();
                 openSet.Add(startNode);
 
-                while (openSet.Count > 0)
+                while(openSet.Count > 0)
                 {
                     Node currentNode = openSet.RemoveFirst();
                     closedSet.Add(currentNode);
 
-                    if (currentNode == targetNode)
+                    if(currentNode == targetNode)
                     {
-                        stopwatch.Stop();
-                        //Debug.Log("Path found: " + stopwatch.ElapsedMilliseconds + " ms");
                         pathSuccess = true;
                         break;
                     }
 
-                    foreach (Node neigbour in _grid.GetNeigbours(currentNode))
+                    foreach (Node neighbour in _grid.GetNeigbours(currentNode))
                     {
-                        if (!neigbour.Walkable || closedSet.Contains(neigbour))
+                        if (!neighbour.Walkable || closedSet.Contains(neighbour) || !neighbour.GroundNode)
                             continue;
 
-                        int newMovementCostToNeigbour = currentNode.gCost + GetDistance(currentNode, neigbour) + neigbour.MovementPenalty;
-                        if (newMovementCostToNeigbour < neigbour.gCost || !openSet.Contains(neigbour))
+                        int newMovementCostToNeighbour = currentNode.gCost + GetDistance(currentNode, neighbour);
+                        if(newMovementCostToNeighbour< neighbour.gCost || !openSet.Contains(neighbour))
                         {
-                            neigbour.gCost = newMovementCostToNeigbour;
-                            neigbour.hCost = GetDistance(neigbour, targetNode);
-                            neigbour.Parent = currentNode;
+                            neighbour.gCost = newMovementCostToNeighbour;
+                            neighbour.hCost = GetDistance(neighbour, targetNode);
+                            neighbour.Parent = currentNode;
 
-                            if (!openSet.Contains(neigbour))
-                                openSet.Add(neigbour);
+                            if (!openSet.Contains(neighbour))
+                                openSet.Add(neighbour);
                             else
-                                openSet.UpdateItem(neigbour);
+                                openSet.UpdateItem(neighbour);
                         }
                     }
                 }
@@ -113,16 +106,6 @@ namespace Dreambound.Astar
             }
 
             return waypoints.ToArray();
-        }
-        private float GetGroundHeightAtNode(Node node)
-        {
-            RaycastHit hit;
-            if (Physics.Raycast(node.WorldPosition, Vector3.down * 50f, out hit))
-            {
-                return hit.point.y;
-            }
-
-            return 0;
         }
 
         private int GetDistance(Node node1, Node node2)

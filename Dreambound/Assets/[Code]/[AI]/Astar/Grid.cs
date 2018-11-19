@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System.Linq;
+using System.Threading;
+using System.Diagnostics;
+using System.Collections.Generic;
 using UnityEngine;
-
-using Dreambound.Astar.Data;
-using Dreambound.AI;
 
 using Debug = UnityEngine.Debug;
 
@@ -19,9 +19,7 @@ namespace Dreambound.Astar
         [SerializeField] private TerrainType[] _walkableRegions;
 
         [Header("Agent settings")]
-        [SerializeField] private Agent[] _agents;
         [SerializeField] private float _agentHeight;
-        [SerializeField] private float _agentMaxStepHeight;
 
         [Space]
         [SerializeField] private int _blurSize;
@@ -32,15 +30,17 @@ namespace Dreambound.Astar
 
         private LayerMask _walkableMask;
         private Dictionary<int, int> _walkableRegionsDic;
+        private List<Slope> _slopes;
 
-        private int _penaltyMin = int.MaxValue;
-        private int _penaltyMax = int.MinValue;
+        private Stopwatch _stopwatch;
 
-        private Unit[] _units;
+        private float _penaltyMin = float.MaxValue;
+        private float _penaltyMax = float.MinValue;
 
         private void Awake()
         {
-            _units = FindObjectsOfType<Unit>();
+            _stopwatch = new Stopwatch();
+            _stopwatch.Start();
 
             _nodeDiameter = _nodeRadius * 2f;
             _gridSize.x = Mathf.RoundToInt(_gridWorldSize.x / _nodeDiameter);
@@ -63,6 +63,15 @@ namespace Dreambound.Astar
                 _walkableRegionsDic.Add(key, region.TerrainPenalty);
             }
 
+            //Create all the slopes with their corrolating transform's name
+            _slopes = new List<Slope>();
+            List<Transform> slopeTransfroms = new List<Transform>();
+            slopeTransfroms.AddRange(FindObjectsOfType<Transform>().Where(x => x.gameObject.layer == LayerMask.NameToLayer("Slope")));
+            for (int i = 0; i < slopeTransfroms.Count; i++)
+            {
+                _slopes.Add(new Slope(slopeTransfroms[i].name));
+            }
+
             GenerateGrid();
         }
 
@@ -75,7 +84,6 @@ namespace Dreambound.Astar
             worldBottomLeft = transform.position - Vector3.right * _gridWorldSize.x / 2f - Vector3.up * _gridWorldSize.y / 2f -
             worldBottomLeft - Vector3.forward * _gridWorldSize.z / 2f;
 
-
             for (int x = 0; x < _gridSize.x; x++)
             {
                 for (int y = 0; y < _gridSize.y; y++)
@@ -85,9 +93,17 @@ namespace Dreambound.Astar
                         //Calculate the worldpoint of the current node
                         Vector3 worldPoint = worldBottomLeft + Vector3.right * (x * _nodeDiameter + _nodeRadius) + Vector3.up * (y * _nodeDiameter + _nodeRadius) + Vector3.forward * (z * _nodeDiameter + _nodeRadius);
 
+                        bool floatingNode = !(Physics.CheckSphere(worldPoint, _nodeRadius));
+                        if (floatingNode)
+                        {
+                            _grid[x, y, z] = null;
+                            continue;
+                        }
+
                         //Check if the node is within or too close to an obstacle
                         //If so set the node to non-walkable
                         bool walkable = !(Physics.CheckSphere(worldPoint, _nodeRadius, _unwalkableMask, QueryTriggerInteraction.Ignore));
+
 
                         //If the node is originaly walkable check if the passage way isn'y too low for the agent
                         //If it is set walkable to false
@@ -105,12 +121,16 @@ namespace Dreambound.Astar
                         //Check if the node is a ground node
                         //If so set the nodes groundPosition
                         Ray groundRay = new Ray(worldPoint, Vector3.down);
-                        Vector3 groundPosition = Vector3.zero;
                         bool groundNode = false;
+                        string slopeTransformName = string.Empty;
                         if (Physics.Raycast(groundRay, out RaycastHit groundHit, _nodeDiameter))
                         {
                             groundNode = true;
-                            groundPosition = groundHit.point;
+
+                            if (groundHit.transform.gameObject.layer == LayerMask.NameToLayer("Slope"))
+                            {
+                                slopeTransformName = groundHit.transform.name;
+                            }
                         }
 
                         //Find movement penalty
@@ -128,26 +148,25 @@ namespace Dreambound.Astar
                             movementPenalty += _obstacleProximityPenalty;
                         }
 
-                        _grid[x, y, z] = new Node(walkable, worldPoint, x, y, z, movementPenalty, groundNode, groundPosition);
-                    }
-                }
-            }
+                        _grid[x, y, z] = new Node(walkable, worldPoint, x, y, z, movementPenalty, groundNode, slopeTransformName);
 
-            CalculateSlopeStartNodes();
-            BlurPenaltyMap();
-        }
-        private void CalculateSlopeStartNodes()
-        {
-            for (int x = 0; x < _gridSize.x; x++)
-            {
-                for (int y = 0; y < _gridSize.y; y++)
-                {
-                    for (int z = 0; z < _gridSize.z; z++)
-                    {
+                        //Add the current node to the right slope instance
+                        Slope slope = _slopes.Find(s => s.TransformName == slopeTransformName);
+                        if (slope != null)
+                        {
+                            int index = _slopes.IndexOf(slope);
+                            _slopes[index].AddNode(_grid[x, y, z]);
+                        }
 
                     }
                 }
             }
+
+            Thread blurPenaltyMapThread = new Thread(BlurPenaltyMap);
+            blurPenaltyMapThread.Start();
+
+            _stopwatch.Stop();
+            Debug.LogError(_stopwatch.ElapsedMilliseconds);
         }
         private void BlurPenaltyMap()
         {
@@ -160,30 +179,34 @@ namespace Dreambound.Astar
                 {
                     for (int z = 0; z < _gridSize.z; z++)
                     {
-                        int totalPenalty = 0;
-                        for (int rangeX = -kernelExtends; rangeX <= kernelExtends; rangeX++)
+                        if (_grid[x, y, z] != null)
                         {
-                            for (int rangeY = -kernelExtends; rangeY <= kernelExtends; rangeY++)
+                            int totalPenalty = 0;
+                            for (int rangeX = -kernelExtends; rangeX <= kernelExtends; rangeX++)
                             {
-                                for (int rangeZ = -kernelExtends; rangeZ <= kernelExtends; rangeZ++)
+                                for (int rangeY = -kernelExtends; rangeY <= kernelExtends; rangeY++)
                                 {
-                                    int sampleX = Mathf.Clamp(rangeX + x, 0, _gridSize.x - 1);
-                                    int sampleY = Mathf.Clamp(rangeY + y, 0, _gridSize.y - 1);
-                                    int sampleZ = Mathf.Clamp(rangeZ + z, 0, _gridSize.z - 1);
+                                    for (int rangeZ = -kernelExtends; rangeZ <= kernelExtends; rangeZ++)
+                                    {
+                                        int sampleX = Mathf.Clamp(rangeX + x, 0, _gridSize.x - 1);
+                                        int sampleY = Mathf.Clamp(rangeY + y, 0, _gridSize.y - 1);
+                                        int sampleZ = Mathf.Clamp(rangeZ + z, 0, _gridSize.z - 1);
 
-                                    totalPenalty += _grid[sampleX, sampleY, sampleZ].MovementPenalty;
+                                        if (_grid[sampleX, sampleY, sampleZ] != null)
+                                            totalPenalty += _grid[sampleX, sampleY, sampleZ].MovementPenalty;
+                                    }
                                 }
                             }
+
+                            int blurredPenalty = Mathf.RoundToInt((float)totalPenalty / (kernelSize * kernelSize * kernelSize));
+                            _grid[x, y, z].MovementPenalty = blurredPenalty;
+
+                            if (blurredPenalty < _penaltyMin)
+                                _penaltyMin = blurredPenalty;
+
+                            if (blurredPenalty > _penaltyMax)
+                                _penaltyMax = blurredPenalty;
                         }
-
-                        int blurredPenalty = Mathf.RoundToInt((float)totalPenalty / (kernelSize * kernelSize * kernelSize));
-                        _grid[x, y, z].MovementPenalty = blurredPenalty;
-
-                        if (blurredPenalty > _penaltyMax)
-                            _penaltyMax = blurredPenalty;
-
-                        if (blurredPenalty < _penaltyMin)
-                            _penaltyMin = blurredPenalty;
                     }
                 }
             }
@@ -209,7 +232,8 @@ namespace Dreambound.Astar
                         //Check if X,Y,Z are inside the grid
                         if ((checkX >= 0 && checkX < _gridSize.x) && (checkY >= 0 && checkY < _gridSize.y) && (checkZ >= 0 && checkZ < _gridSize.z))
                         {
-                            neighbours.Add(_grid[checkX, checkY, checkZ]);
+                            if (_grid[checkX, checkY, checkZ] != null)
+                                neighbours.Add(_grid[checkX, checkY, checkZ]);
                         }
                     }
                 }
@@ -236,6 +260,9 @@ namespace Dreambound.Astar
 
         private void OnDrawGizmos()
         {
+            Gizmos.DrawWireCube(transform.position, _gridWorldSize);
+
+
             if (_grid != null)
             {
                 for (int x = 0; x < _gridSize.x; x++)
@@ -244,22 +271,21 @@ namespace Dreambound.Astar
                     {
                         for (int z = 0; z < _gridSize.z; z++)
                         {
-                            Gizmos.color = Color.gray;
-                            Gizmos.color = (_grid[x, y, z].GroundNode) ? Color.blue : Gizmos.color;
-                            Gizmos.color = (_grid[x, y, z].SlopeAccessNode) ? Color.yellow : Gizmos.color;
-                            Gizmos.color = (_grid[x, y, z].Walkable) ? Gizmos.color : Color.red;
-
-                            if (!_grid[x, y, z].Walkable || _grid[x, y, z].GroundNode || _grid[x,y,z].SlopeAccessNode)
+                            if (_grid[x, y, z] != null)
+                            {
+                                Gizmos.color = Color.Lerp(Color.white, Color.black, Mathf.InverseLerp(_penaltyMin, _penaltyMax, _grid[x, y, z].MovementPenalty));
                                 Gizmos.DrawCube(_grid[x, y, z].WorldPosition, Vector3.one * (_nodeDiameter - 0.1f));
+
+                                //Gizmos.color = Color.gray;
+                                //Gizmos.color = (_grid[x, y, z].GroundNode) ? Color.blue : Gizmos.color;
+                                //Gizmos.color = (_grid[x, y, z].Walkable) ? Gizmos.color : Color.red;
+                                //Gizmos.color = (_grid[x, y, z].SlopeNode) ? Color.yellow : Gizmos.color;
+
+                                //if (!_grid[x, y, z].Walkable || _grid[x, y, z].GroundNode || _grid[x, y, z].SlopeNode)
+                                //    Gizmos.DrawCube(_grid[x, y, z].WorldPosition, Vector3.one * (_nodeDiameter - 0.1f));
+                            }
                         }
                     }
-                }
-
-                for(int i = 0; i < _units.Length; i++)
-                {
-                    Gizmos.color = Color.green;
-
-                    Gizmos.DrawCube(_units[i].transform.position, Vector3.one * (_nodeDiameter - 0.1f));
                 }
             }
         }
@@ -267,10 +293,6 @@ namespace Dreambound.Astar
         public int MaxSize
         {
             get { return _gridSize.x * _gridSize.y * _gridSize.z; }
-        }
-        public Node[,,] Nodes
-        {
-            get { return _grid; }
         }
     }
 }

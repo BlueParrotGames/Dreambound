@@ -7,17 +7,17 @@ namespace Dreambound.Astar
 {
     public class PathRequestManager : MonoBehaviour
     {
-        private Queue<PathResult> _results;
-
         private static PathRequestManager _instance;
-        private PathFinding _pathFinding;
+
+        private Queue<PathResult> _results;
+        private PathFinding _pathfinding;
 
         private void Awake()
         {
             _instance = this;
-            _pathFinding = GetComponent<PathFinding>();
 
             _results = new Queue<PathResult>();
+            _pathfinding = GetComponent<PathFinding>();
         }
         private void Update()
         {
@@ -31,14 +31,14 @@ namespace Dreambound.Astar
                         result.Callback(result.Path, result.Success);
                     }
                 }
-            }
+            }    
         }
 
         public static void RequestPath(PathRequest request)
         {
             ThreadStart threadStart = delegate
             {
-                _instance._pathFinding.FindPath(request, _instance.FinishedProcessingPath);
+                _instance._pathfinding.FindPath(request, _instance.FinishedProcessingPath);
             };
             threadStart.Invoke();
         }
@@ -50,8 +50,9 @@ namespace Dreambound.Astar
                 _results.Enqueue(result);
             }
         }
+
     }
-    
+
     public struct PathResult
     {
         public readonly Vector3[] Path;
@@ -65,7 +66,6 @@ namespace Dreambound.Astar
             Callback = callback;
         }
     }
-
     public struct PathRequest
     {
         public readonly Vector3 PathStart;
