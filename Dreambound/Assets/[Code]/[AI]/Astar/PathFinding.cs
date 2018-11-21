@@ -25,18 +25,18 @@ namespace Dreambound.Astar
             Node targetNode = _grid.GetNodeFromWorldPoint(request.PathEnd);
             startNode.Parent = startNode;
 
-            if(startNode.Walkable && targetNode.Walkable)
+            if (startNode.Walkable && targetNode.Walkable)
             {
                 Heap<Node> openSet = new Heap<Node>(_grid.MaxSize);
                 HashSet<Node> closedSet = new HashSet<Node>();
                 openSet.Add(startNode);
 
-                while(openSet.Count > 0)
+                while (openSet.Count > 0)
                 {
                     Node currentNode = openSet.RemoveFirst();
                     closedSet.Add(currentNode);
 
-                    if(currentNode == targetNode)
+                    if (currentNode == targetNode)
                     {
                         pathSuccess = true;
                         break;
@@ -48,7 +48,7 @@ namespace Dreambound.Astar
                             continue;
 
                         int newMovementCostToNeighbour = currentNode.gCost + GetDistance(currentNode, neighbour);
-                        if(newMovementCostToNeighbour< neighbour.gCost || !openSet.Contains(neighbour))
+                        if (newMovementCostToNeighbour < neighbour.gCost || !openSet.Contains(neighbour))
                         {
                             neighbour.gCost = newMovementCostToNeighbour;
                             neighbour.hCost = GetDistance(neighbour, targetNode);
@@ -126,6 +126,10 @@ namespace Dreambound.Astar
                 return 14 * distanceZ + 10 * (xyDist - distanceZ);
             else
                 return 14 * xyDist + 10 * (distanceZ - xyDist);
+        }
+        private float GetHeightDistance(Node currentNode, Node calculateNode)
+        {
+            return calculateNode.GroundPosition.y - currentNode.GroundPosition.y;
         }
     }
 }

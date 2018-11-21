@@ -20,6 +20,7 @@ namespace Dreambound.AI
         [SerializeField] private bool _drawPathGizmos;
 
         private Vector3 _moveDirection;
+        private Vector3 _targetLastKnownPosition;
 
         private Path _path;
         private CharacterController _controller;
@@ -46,18 +47,18 @@ namespace Dreambound.AI
             if (Time.timeSinceLevelLoad < 0.3f)
                 yield return new WaitForSeconds(0.3f);
 
-            PathRequestManager.RequestPath(new PathRequest(transform.position, _target.position, OnPathFound));
+            PathRequestManager.RequestPath(new PathRequest(transform.position, GetTargetGroundPosition(), OnPathFound));
 
             float sqrMoveThreshold = _pathUpdateThreshold * _pathUpdateThreshold;
-            Vector3 oldTargetPosition = _target.position;
+            Vector3 oldTargetPosition = GetTargetGroundPosition();
 
             while (true)
             {
                 yield return new WaitForSeconds(_minimumPathUpdateTime);
 
-                if ((_target.position - oldTargetPosition).sqrMagnitude > sqrMoveThreshold)
+                if ((GetTargetGroundPosition() - oldTargetPosition).sqrMagnitude > sqrMoveThreshold)
                 {
-                    PathRequestManager.RequestPath(new PathRequest(transform.position, _target.position, OnPathFound));
+                    PathRequestManager.RequestPath(new PathRequest(transform.position, GetTargetGroundPosition(), OnPathFound));
                     oldTargetPosition = _target.position;
                 }
             }
@@ -99,14 +100,27 @@ namespace Dreambound.AI
                         }
                     }
 
-                    Quaternion targetRotation = Quaternion.LookRotation(_path.LookPoints[pathIndex] - transform.position);
-                    transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, _turnSpeed * Time.deltaTime);
-                    transform.Translate(Vector3.forward * _speed * speedPercent * Time.deltaTime, Space.Self);
+                    Vector3 newForward = new Vector3(_path.LookPoints[pathIndex].x, 0, _path.LookPoints[pathIndex].z) - new Vector3(transform.position.x, 0, transform.position.z);
+                    newForward.Normalize();
 
+                    Quaternion targetRotation = Quaternion.LookRotation(newForward);
+                    transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, _turnSpeed * Time.deltaTime);
+
+                    _controller.Move(transform.forward * _speed * speedPercent * Time.deltaTime);
                 }
 
                 yield return null;
             }
+        }
+
+        private Vector3 GetTargetGroundPosition()
+        {
+            if(Physics.Raycast(_target.position, Vector3.down * 1000f, out RaycastHit hit))
+            {
+                _targetLastKnownPosition = hit.point;
+            }
+
+            return _targetLastKnownPosition;
         }
 
         private void OnDrawGizmos()

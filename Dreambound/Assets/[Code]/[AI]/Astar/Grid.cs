@@ -20,9 +20,11 @@ namespace Dreambound.Astar
 
         [Header("Agent settings")]
         [SerializeField] private float _agentHeight;
+        [SerializeField] private float _agentRadius;
 
-        [Space]
+        [Header("Baking settings")]
         [SerializeField] private int _blurSize;
+        [SerializeField] private GameObject _bakingColliders;
 
         private Vector3Int _gridSize;
         private Node[,,] _grid;
@@ -30,7 +32,6 @@ namespace Dreambound.Astar
 
         private LayerMask _walkableMask;
         private Dictionary<int, int> _walkableRegionsDic;
-        private List<Slope> _slopes;
 
         private Stopwatch _stopwatch;
 
@@ -63,14 +64,8 @@ namespace Dreambound.Astar
                 _walkableRegionsDic.Add(key, region.TerrainPenalty);
             }
 
-            //Create all the slopes with their corrolating transform's name
-            _slopes = new List<Slope>();
-            List<Transform> slopeTransfroms = new List<Transform>();
-            slopeTransfroms.AddRange(FindObjectsOfType<Transform>().Where(x => x.gameObject.layer == LayerMask.NameToLayer("Slope")));
-            for (int i = 0; i < slopeTransfroms.Count; i++)
-            {
-                _slopes.Add(new Slope(slopeTransfroms[i].name));
-            }
+            if (_bakingColliders != null)
+                Destroy(_bakingColliders);
 
             GenerateGrid();
         }
@@ -102,13 +97,15 @@ namespace Dreambound.Astar
 
                         //Check if the node is within or too close to an obstacle
                         //If so set the node to non-walkable
-                        bool walkable = !(Physics.CheckSphere(worldPoint, _nodeRadius, _unwalkableMask, QueryTriggerInteraction.Ignore));
-
+                        bool walkable = !(Physics.CheckSphere(worldPoint, _agentRadius, _unwalkableMask, QueryTriggerInteraction.Ignore));
 
                         //If the node is originaly walkable check if the passage way isn'y too low for the agent
                         //If it is set walkable to false
                         if (walkable)
                         {
+                            //Make sure the AI doesn't try to walk trough the walls
+                            //walkable = !(Physics.CheckSphere(worldPoint, (_agentRadius * 2f), _unwalkableMask, QueryTriggerInteraction.Ignore));
+
                             if (Physics.Raycast(worldPoint, Vector3.up * _agentHeight, out RaycastHit hitUp))
                             {
                                 if (Physics.Raycast(worldPoint, Vector3.down * _agentHeight, out RaycastHit hitDown))
@@ -122,15 +119,11 @@ namespace Dreambound.Astar
                         //If so set the nodes groundPosition
                         Ray groundRay = new Ray(worldPoint, Vector3.down);
                         bool groundNode = false;
-                        string slopeTransformName = string.Empty;
+                        Vector3 groundPosition = Vector3.zero;
                         if (Physics.Raycast(groundRay, out RaycastHit groundHit, _nodeDiameter))
                         {
                             groundNode = true;
-
-                            if (groundHit.transform.gameObject.layer == LayerMask.NameToLayer("Slope"))
-                            {
-                                slopeTransformName = groundHit.transform.name;
-                            }
+                            groundPosition = groundHit.point;
                         }
 
                         //Find movement penalty
@@ -148,16 +141,7 @@ namespace Dreambound.Astar
                             movementPenalty += _obstacleProximityPenalty;
                         }
 
-                        _grid[x, y, z] = new Node(walkable, worldPoint, x, y, z, movementPenalty, groundNode, slopeTransformName);
-
-                        //Add the current node to the right slope instance
-                        Slope slope = _slopes.Find(s => s.TransformName == slopeTransformName);
-                        if (slope != null)
-                        {
-                            int index = _slopes.IndexOf(slope);
-                            _slopes[index].AddNode(_grid[x, y, z]);
-                        }
-
+                        _grid[x, y, z] = new Node(walkable, worldPoint, x, y, z, groundPosition, movementPenalty, groundNode);
                     }
                 }
             }
@@ -166,8 +150,9 @@ namespace Dreambound.Astar
             blurPenaltyMapThread.Start();
 
             _stopwatch.Stop();
-            Debug.LogError(_stopwatch.ElapsedMilliseconds);
+            Debug.Log(_stopwatch.ElapsedMilliseconds);
         }
+
         private void BlurPenaltyMap()
         {
             int kernelSize = _blurSize * 2 - 1;
