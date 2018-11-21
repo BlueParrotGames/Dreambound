@@ -88,8 +88,7 @@ namespace Dreambound.Astar
                         //Calculate the worldpoint of the current node
                         Vector3 worldPoint = worldBottomLeft + Vector3.right * (x * _nodeDiameter + _nodeRadius) + Vector3.up * (y * _nodeDiameter + _nodeRadius) + Vector3.forward * (z * _nodeDiameter + _nodeRadius);
 
-                        bool floatingNode = !(Physics.CheckSphere(worldPoint, _nodeRadius));
-                        if (floatingNode)
+                        if (!Physics.CheckSphere(worldPoint, _nodeRadius))
                         {
                             _grid[x, y, z] = null;
                             continue;
@@ -258,7 +257,7 @@ namespace Dreambound.Astar
                         {
                             if (_grid[x, y, z] != null)
                             {
-                                Gizmos.color = Color.Lerp(Color.white, Color.black, Mathf.InverseLerp(_penaltyMin, _penaltyMax, _grid[x, y, z].MovementPenalty));
+                     //           Gizmos.color = Color.Lerp(Color.white, Color.black, Mathf.InverseLerp(_penaltyMin, _penaltyMax, _grid[x, y, z].MovementPenalty));
                                 Gizmos.DrawCube(_grid[x, y, z].WorldPosition, Vector3.one * (_nodeDiameter - 0.1f));
 
                                 //Gizmos.color = Color.gray;
