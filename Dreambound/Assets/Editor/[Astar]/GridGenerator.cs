@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿using System.Threading;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -101,8 +101,8 @@ namespace Dreambound.Astar.Editor
                     }
                 }
             }
-
-            BlurPenaltyMap();
+            Thread blurThread = new Thread(BlurPenaltyMap);
+            blurThread.Start();
 
             return _grid;
         }

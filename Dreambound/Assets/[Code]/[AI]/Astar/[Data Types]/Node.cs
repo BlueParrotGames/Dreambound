@@ -2,6 +2,7 @@
 
 namespace Dreambound.Astar
 {
+    [System.Serializable]
     public class Node : IHeapItem<Node>
     {
         public bool Walkable;

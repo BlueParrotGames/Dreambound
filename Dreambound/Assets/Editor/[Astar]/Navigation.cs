@@ -1,4 +1,8 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Linq;
+using System.Collections.Generic;
+
+using UnityEngine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 
@@ -25,6 +29,7 @@ namespace Dreambound.Astar.Editor
         private float _radiusSizeMultiplier = 1.2f;
 
         private GenerationSettings _currentSettings;
+        private GameObject _colliderParent;
 
         private static Navigation _instance;
 
@@ -77,15 +82,17 @@ namespace Dreambound.Astar.Editor
             if (GUILayout.Button("Generate Grid"))
             {
                 SaveGenerationSettings();
-                GridGenerator.GenerateGrid(_currentSettings, _terrainTypes.WalkableTerrainTypes);
+                GenerateBakingColliders();
+                SaveGridFile(GridGenerator.GenerateGrid(_currentSettings, _terrainTypes.WalkableTerrainTypes));
+                DestroyBakingColliders();
             }
         }
 
         private void LoadGenerationSettings()
         {
-            if (AssetDatabase.IsValidFolder("Assets/Resources/[NavSettings]"))
+            if (AssetDatabase.IsValidFolder("Assets/Resources/[Navigation]/[NavSettings]"))
             {
-                _currentSettings = (GenerationSettings)AssetDatabase.LoadAssetAtPath("Assets/Resources/[NavSettings]/" + GetCurrentSceneName() + "_NavGenSettings.Asset", typeof(GenerationSettings));
+                _currentSettings = (GenerationSettings)AssetDatabase.LoadAssetAtPath("Assets/Resources/[Navigation]/[NavSettings]/" + GetCurrentSceneName() + "_NavGenSettings.Asset", typeof(GenerationSettings));
 
                 _gridWorldSize = _currentSettings.GridWorldSize;
                 _nodeRadius = _currentSettings.NodeRadius;
@@ -105,47 +112,66 @@ namespace Dreambound.Astar.Editor
         {
             _currentSettings = new GenerationSettings(_gridWorldSize, _nodeRadius, _obstacleProximityPenalty, _agentHeight, _agentRadius, _agentJumpHeight, _blurSize, _colliderSizeMultiplier, _radiusSizeMultiplier);
 
-            if (!AssetDatabase.IsValidFolder("Assets/Resources/[NavSettings]"))
-                AssetDatabase.CreateFolder("Assets/Resources", "[NavSettings]");
+            if (!AssetDatabase.IsValidFolder("Assets/Resources/[Navigation]"))
+                AssetDatabase.CreateFolder("Assets/Resources", "[Navigation]");
 
-            AssetDatabase.CreateAsset(_currentSettings, "Assets/Resources/[NavSettings]/" + GetCurrentSceneName() + "_NavGenSettings.Asset");
+            if (!AssetDatabase.IsValidFolder("Assets/Resources/[Navigation]/[NavSettings]"))
+                AssetDatabase.CreateFolder("Assets/Resources/[Navigation]", "[NavSettings]");
+
+            AssetDatabase.CreateAsset(_currentSettings, "Assets/Resources/[Navigation]/[NavSettings]/" + GetCurrentSceneName() + "_NavGenSettings.Asset");
         }
         private string GetCurrentSceneName()
         {
             return EditorSceneManager.GetActiveScene().name;
         }
 
-        //private void GenerateBakingColliders()
-        //{
-        //    Collider[] unwalkableColliders = FindObjectsOfType<Collider>().Where(x => GameObjectUtility.GetStaticEditorFlags(x.gameObject).HasFlag(StaticEditorFlags.NavigationStatic)).ToArray();
-        //    for (int i = 0; i < unwalkableColliders.Length; i++)
-        //    {
-        //        Type colliderType = unwalkableColliders[i].GetType();
+        private void SaveGridFile(Node[,,] grid)
+        {
+            if (!AssetDatabase.IsValidFolder("Assets/Resources/[Navigation]/[Grid Files]"))
+                AssetDatabase.CreateFolder("Assets/Resources/[Navigation]", "[Grid Files]");
 
-        //        GameObject obj = new GameObject(unwalkableColliders[i].transform.name + " GenCollider");
-        //        obj.transform.parent = _colliderParent.transform;
-        //        obj.transform.position = unwalkableColliders[i].transform.position;
-        //        obj.transform.rotation = unwalkableColliders[i].transform.rotation;
-        //        obj.transform.localScale = unwalkableColliders[i].transform.lossyScale;
-        //        obj.layer = LayerMask.NameToLayer("Unwalkable");
+            GridFile gridFile = new GridFile(grid);
 
-        //        if (colliderType == typeof(BoxCollider))
-        //        {
-        //            Vector3 newColliderSize = unwalkableColliders[i].GetComponent<BoxCollider>().size;
-        //            newColliderSize.x *= _colliderSizeMultiplier.x;
-        //            newColliderSize.y *= _colliderSizeMultiplier.y;
-        //            newColliderSize.z *= _colliderSizeMultiplier.z;
+            //Something is going wrong with the reading or writing of the file
+        }
 
-        //            obj.AddComponent<BoxCollider>().size = newColliderSize;
-        //        }
-        //        else if (colliderType == typeof(SphereCollider))
-        //        {
-        //            float newColliderRadius = unwalkableColliders[i].GetComponent<SphereCollider>().radius;
-        //            newColliderRadius *= newColliderRadius;
+        private void GenerateBakingColliders()
+        {
+            _colliderParent = new GameObject("Temp");
 
-        //            obj.AddComponent<SphereCollider>().radius = newColliderRadius;
-        //        }
-        //    }
-        //}
+            Collider[] unwalkableColliders = FindObjectsOfType<Collider>().Where(x => GameObjectUtility.GetStaticEditorFlags(x.gameObject).HasFlag(StaticEditorFlags.NavigationStatic)).ToArray();
+            for (int i = 0; i < unwalkableColliders.Length; i++)
+            {
+                Type colliderType = unwalkableColliders[i].GetType();
+
+                GameObject obj = new GameObject(unwalkableColliders[i].transform.name + " GenCollider");
+                obj.transform.parent = _colliderParent.transform;
+                obj.transform.position = unwalkableColliders[i].transform.position;
+                obj.transform.rotation = unwalkableColliders[i].transform.rotation;
+                obj.transform.localScale = unwalkableColliders[i].transform.lossyScale;
+                obj.layer = LayerMask.NameToLayer("Unwalkable");
+
+                if (colliderType == typeof(BoxCollider))
+                {
+                    Vector3 newColliderSize = unwalkableColliders[i].GetComponent<BoxCollider>().size;
+                    newColliderSize.x *= _colliderSizeMultiplier.x;
+                    newColliderSize.y *= _colliderSizeMultiplier.y;
+                    newColliderSize.z *= _colliderSizeMultiplier.z;
+
+                    obj.AddComponent<BoxCollider>().size = newColliderSize;
+                }
+                else if (colliderType == typeof(SphereCollider))
+                {
+                    float newColliderRadius = unwalkableColliders[i].GetComponent<SphereCollider>().radius;
+                    newColliderRadius *= newColliderRadius;
+
+                    obj.AddComponent<SphereCollider>().radius = newColliderRadius;
+                }
+            }
+        }
+        private void DestroyBakingColliders()
+        {
+            DestroyImmediate(_colliderParent);
+        }
     }
 }
