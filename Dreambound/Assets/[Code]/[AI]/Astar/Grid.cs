@@ -27,6 +27,9 @@ namespace Dreambound.Astar
         [SerializeField] private int _blurSize;
         [SerializeField] private GameObject _bakingColliders;
 
+        [Space]
+        [SerializeField] private bool _showDebugGrid;
+
         private Vector3Int _gridSize;
         private Node[,,] _grid;
         private float _nodeDiameter;
@@ -65,10 +68,9 @@ namespace Dreambound.Astar
                 _walkableRegionsDic.Add(key, region.TerrainPenalty);
             }
 
-            if (_bakingColliders != null)
-                Destroy(_bakingColliders);
-
             GenerateGrid();
+
+            Destroy(_bakingColliders);
         }
 
         private void GenerateGrid()
@@ -152,7 +154,6 @@ namespace Dreambound.Astar
             _stopwatch.Stop();
             Debug.Log(_stopwatch.ElapsedMilliseconds);
         }
-
         private void BlurPenaltyMap()
         {
             int kernelSize = _blurSize * 2 - 1;
@@ -247,8 +248,7 @@ namespace Dreambound.Astar
         {
             Gizmos.DrawWireCube(transform.position, _gridWorldSize);
 
-
-            if (_grid != null)
+            if (_showDebugGrid && _grid != null)
             {
                 for (int x = 0; x < _gridSize.x; x++)
                 {
@@ -258,7 +258,7 @@ namespace Dreambound.Astar
                         {
                             if (_grid[x, y, z] != null)
                             {
-                     //           Gizmos.color = Color.Lerp(Color.white, Color.black, Mathf.InverseLerp(_penaltyMin, _penaltyMax, _grid[x, y, z].MovementPenalty));
+                                //           Gizmos.color = Color.Lerp(Color.white, Color.black, Mathf.InverseLerp(_penaltyMin, _penaltyMax, _grid[x, y, z].MovementPenalty));
                                 Gizmos.DrawCube(_grid[x, y, z].WorldPosition, Vector3.one * (_nodeDiameter - 0.1f));
 
                                 //Gizmos.color = Color.gray;
