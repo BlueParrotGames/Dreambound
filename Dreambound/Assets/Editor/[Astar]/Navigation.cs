@@ -8,10 +8,9 @@ namespace Dreambound.Astar.Editor
 {
     public class Navigation : EditorWindow
     {
-        private Vector3 _colliderSizeMultiplier;
-        [Tooltip("tst")]
+        private Vector3 _colliderSizeMultiplier = new Vector3(1.2f,1.2f, 1.2f);
 
-        private float _radiusSizeMultiplier;
+        private float _radiusSizeMultiplier = 1.2f;
         private List<GameObject> _colliderObjects;
         private GameObject _colliderParent;
 
@@ -33,9 +32,9 @@ namespace Dreambound.Astar.Editor
         private void OnGUI()
         {
             EditorGUILayout.Space();
-            _colliderSizeMultiplier = EditorGUILayout.Vector3Field("Collider Size Multiplier", _colliderSizeMultiplier);
+            _colliderSizeMultiplier = EditorGUILayout.Vector3Field(new GUIContent("Collider Size Multiplier", "The multiplier for the size of the original box colliders"), _colliderSizeMultiplier);
 
-            _radiusSizeMultiplier = EditorGUILayout.FloatField("Collider Radius Multiplier", _radiusSizeMultiplier);
+            _radiusSizeMultiplier = EditorGUILayout.FloatField(new GUIContent("Collider Radius Multiplier", "The multiplier for the radius of the original sphere colliders"), _radiusSizeMultiplier);
 
             EditorGUILayout.Space();
             if (GUILayout.Button("Generate Baking Colliders"))
@@ -55,12 +54,12 @@ namespace Dreambound.Astar.Editor
                 _colliderParent.transform.parent = FindObjectOfType<Grid>().transform;
             }
 
-            for(int i = 0; i < _colliderObjects.Count; i++)
+            for (int i = 0; i < _colliderObjects.Count; i++)
             {
                 _colliderObjects.Remove(_colliderObjects[i]);
             }
 
-            Collider[] unwalkableColliders = FindObjectsOfType<Collider>().Where(x => x.gameObject.layer == LayerMask.NameToLayer("Unwalkable")).ToArray();
+            Collider[] unwalkableColliders = FindObjectsOfType<Collider>().Where(x => GameObjectUtility.GetStaticEditorFlags(x.gameObject).HasFlag(StaticEditorFlags.NavigationStatic)).ToArray();
             for (int i = 0; i < unwalkableColliders.Length; i++)
             {
                 Type colliderType = unwalkableColliders[i].GetType();

@@ -21,6 +21,7 @@ namespace Dreambound.Astar
         [Header("Agent settings")]
         [SerializeField] private float _agentHeight;
         [SerializeField] private float _agentRadius;
+        [SerializeField] private float _agentJumpHeight;
 
         [Header("Baking settings")]
         [SerializeField] private int _blurSize;
