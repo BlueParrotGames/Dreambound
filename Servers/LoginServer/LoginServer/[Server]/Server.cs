@@ -31,7 +31,7 @@ namespace BPS.LoginServer
         private VerificationLogic _verification;
 
         private Dictionary<Socket, Client> _connectedClients;
-        private List<string> _connectedUsers;
+        public List<string> ConnectedUsers { get; internal set; }
         private Thread _packetHandlingThread;
 
         private readonly bool _isRunning;
@@ -43,7 +43,7 @@ namespace BPS.LoginServer
         {
             Instance = this;
             ConnectedClients = new Dictionary<Socket, Client>();
-            _connectedUsers = new List<string>();
+            ConnectedUsers = new List<string>();
 
             //Setup all the data components
             PacketHandler = new PackageHandling();
@@ -111,16 +111,23 @@ namespace BPS.LoginServer
 
         private void UpdateUserList(string username, int id, bool online)
         {
-            string userString = username + "#" + id;
+            string userString = username + "#" + id.ToString("00000");
 
-            if (online)
-                _connectedUsers.Add(userString);
+
+            if (!online)
+            {
+                ConnectedUsers.Add(userString);
+                Logger.Log(userString + " Logged in");
+            }
             else
-                _connectedUsers.Remove(userString);
+            {
+                ConnectedUsers.Remove(userString);
+                Logger.Log(userString + " Logged out");
+            }
         }
         public bool IsUserAlreadyOnline(string username, int id)
         {
-            return (_connectedUsers.Contains((username + "#" + id)));
+            return (ConnectedUsers.Contains(username + "#" + id.ToString("00000")));
         }
     }
 }

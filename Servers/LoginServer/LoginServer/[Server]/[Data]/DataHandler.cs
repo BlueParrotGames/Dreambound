@@ -41,6 +41,7 @@ namespace BPS.LoginServer.DataHandling
                 _buffer.WriteInt((int)LoginState.UserAlreadyLoggedIn);
                 _buffer.WriteString("");
                 _buffer.WriteInt(0);
+                _buffer.WriteBool(true);
                 _buffer.WriteInt(0);
             }
             else
@@ -49,12 +50,13 @@ namespace BPS.LoginServer.DataHandling
                 _buffer.WriteInt((int)loginData.LoginState);
                 _buffer.WriteString(loginData.Username);
                 _buffer.WriteInt(loginData.UserId);
+                _buffer.WriteBool(false);
                 _buffer.WriteInt((int)loginData.GamePerks);
 
                 if(loginData.LoginState == LoginState.SuccelfullLogin)
                 {
                     //Set the username of the client
-                    Server.Instance.ConnectedClients[package.Socket].Username = (loginData.Username + "#" + loginData.UserId);
+                    Server.Instance.ConnectedClients[package.Socket].Username = (loginData.Username + "#" + loginData.UserId.ToString("00000"));
                 }
             }
 

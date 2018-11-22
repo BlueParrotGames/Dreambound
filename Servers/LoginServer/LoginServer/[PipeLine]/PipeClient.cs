@@ -15,7 +15,7 @@ namespace BPS.PipeLine
         private NamedPipeClientStream _pipeClient;
         private PipePackageHandling _packetHandler;
 
-        ByteBuffer _byteBuffer;
+        ByteBuffer _handlingBuffer;
         private byte[] _buffer = new byte[1024];
         private bool _isRunning = false;
 
@@ -29,7 +29,7 @@ namespace BPS.PipeLine
             ConnectPipeLine();
             BeginReceiving();
 
-            _byteBuffer = new ByteBuffer();
+            _handlingBuffer = new ByteBuffer();
 
             _isRunning = true;
             Thread handlingLoop = new Thread(PacketHandlingLoop);
@@ -37,9 +37,9 @@ namespace BPS.PipeLine
         }
         private void ConnectPipeLine()
         {
-            Logger.Log("Pipeline connecting...");
+            Logger.Log("Connecting to pipeline...");
 
-            _pipeClient = new NamedPipeClientStream(".", "A", PipeDirection.InOut, PipeOptions.Asynchronous);
+            _pipeClient = new NamedPipeClientStream(".", "BPG Dreambound Pipeline", PipeDirection.InOut, PipeOptions.Asynchronous);
 
             _pipeClient.Connect();
 
@@ -89,11 +89,6 @@ namespace BPS.PipeLine
 
                 _packetHandler.QueuePackage(data, _pipeClient);
 
-                _byteBuffer.Clear();
-                _byteBuffer.WriteBytes(data);
-
-                OnUserStateUpdated?.Invoke(_byteBuffer.ReadString(), _byteBuffer.ReadInt(), _byteBuffer.ReadBool());
-
                 readPos += packetLength;
             }
         }
@@ -105,6 +100,11 @@ namespace BPS.PipeLine
                 if (_packetHandler.HasPackets())
                 {
                     PipePackage package = _packetHandler.PackageQueue.Dequeue();
+
+                    _handlingBuffer.Clear();
+                    _handlingBuffer.WriteBytes(package.Data);
+                    
+                    OnUserStateUpdated?.Invoke(_handlingBuffer.ReadString(), _handlingBuffer.ReadInt(), _handlingBuffer.ReadBool());
                 }
             }
         }

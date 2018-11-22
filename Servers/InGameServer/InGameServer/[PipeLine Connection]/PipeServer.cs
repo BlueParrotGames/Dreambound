@@ -20,10 +20,12 @@ namespace BPS.PipeLine
             Instance = this;
 
             //Initialize Sending Components
-            _pipeServer = new NamedPipeServerStream("A", PipeDirection.InOut);
+            _pipeServer = new NamedPipeServerStream("BPG Dreambound Pipeline", PipeDirection.InOut);
             _sendingQueue = new PipeSendingQueue(_pipeServer);
             _sender = new PipeSender(_sendingQueue);
             _sendingLoop = new PipeSendingLoop(this, _sendingQueue);
+
+            Logger.Log("Waiting for a pipeline client to connect...");
 
             //Wait for the login server to connect
             _pipeServer.WaitForConnection();
