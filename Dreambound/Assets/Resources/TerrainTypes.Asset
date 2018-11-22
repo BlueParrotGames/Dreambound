@@ -10,6 +10,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 0}
-  m_Name: GenerationSettings
-  m_EditorClassIdentifier: Assembly-CSharp:Dreambound.Astar:TerrainTypes
+  m_Name: TerrainTypes
+  m_EditorClassIdentifier: Assembly-CSharp:Dreambound.Astar.Editor:TerrainTypes
   WalkableTerrainTypes: []

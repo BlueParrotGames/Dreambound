@@ -77,6 +77,7 @@ namespace Dreambound.Astar.Editor
             if (GUILayout.Button("Generate Grid"))
             {
                 SaveGenerationSettings();
+                GridGenerator.GenerateGrid(_currentSettings, _terrainTypes.WalkableTerrainTypes);
             }
         }
 
