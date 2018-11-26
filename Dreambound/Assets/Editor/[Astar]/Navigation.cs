@@ -133,6 +133,7 @@ namespace Dreambound.Astar.Editor
             GridFile gridFile = new GridFile(grid);
 
             //Something is going wrong with the reading or writing of the file
+            AssetDatabase.CreateAsset(gridFile, "Assets/Resources/[Navigation]/[Grid Files]/" + GetCurrentSceneName() + "_NavGrid.Asset");
         }
 
         private void GenerateBakingColliders()

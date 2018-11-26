@@ -8,7 +8,7 @@ MonoBehaviour:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
-  m_EditorHideFlags: 1
-  m_Script: {fileID: 11500000, guid: fba8ebfcb0c73614ba6112934e5c6a20, type: 3}
-  m_Name: AI_Testing_NavGenSettings
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8327c7d93b29c4244b591a223e95b10c, type: 3}
+  m_Name: AI_Testing_NavGrid
   m_EditorClassIdentifier: 

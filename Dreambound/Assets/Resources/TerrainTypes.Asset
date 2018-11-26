@@ -12,12 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 0}
   m_Name: TerrainTypes
   m_EditorClassIdentifier: Assembly-CSharp:Dreambound.Astar.Editor:TerrainTypes
-  WalkableTerrainTypes:
-  - TerrainMask:
-      serializedVersion: 2
-      m_Bits: 512
-    TerrainPenalty: 0
-  - TerrainMask:
-      serializedVersion: 2
-      m_Bits: 1024
-    TerrainPenalty: 3
+  WalkableTerrainTypes: []

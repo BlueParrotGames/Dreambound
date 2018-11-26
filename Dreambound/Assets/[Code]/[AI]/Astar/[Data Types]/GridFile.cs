@@ -1,7 +1,7 @@
 ﻿namespace Dreambound.Astar
 {
     [System.Serializable]
-    public class GridFile
+    public class GridFile : UnityEngine.ScriptableObject
     {
         public readonly Node[,,] Grid;
 

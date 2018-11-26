@@ -3,7 +3,7 @@
 namespace Dreambound.Astar
 {
     [System.Serializable]
-    public class Node : IHeapItem<Node>
+    public class Node : ScriptableObject, IHeapItem<Node>
     {
         public bool Walkable;
         public int MovementPenalty;
