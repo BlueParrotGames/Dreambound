@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Sockets;
 using System.Net;
 using System.Threading;
@@ -12,7 +11,7 @@ using BPS.InGameServer.DataHandling;
 
 namespace BPS.InGameServer
 {
-    public class Server : IDisposable
+    public class Server
     {
         public static Server Instance;
 
@@ -29,7 +28,7 @@ namespace BPS.InGameServer
         private VerificationLogic _verification;
 
         private Dictionary<Socket, Client> _connectedClients;
-        private List<string> _connectedUsers;
+        private List<string> _onlineUsers;
         private Thread _packetHandlingThread;
 
         private readonly bool _isRunning;
@@ -41,7 +40,7 @@ namespace BPS.InGameServer
         {
             Instance = this;
             ConnectedClients = new Dictionary<Socket, Client>();
-            _connectedUsers = new List<string>();
+            _onlineUsers = new List<string>();
 
             //Setup all the data components
             PacketHandler = new PackageHandling();
@@ -99,21 +98,18 @@ namespace BPS.InGameServer
             }
         }
 
-        public void Dispose()
-        {
-            //_socket.Close();
-            //_packetHandlingThread.Abort();
-        }
-
         public void UpdateUserList(string username, int id, bool online)
         {
-            string userString = username + "#" + id;
+            string userString = username + "#" + id.ToString("00000");
 
-            if (online)
-                _connectedUsers.Add(userString);
+            if (!online)
+                _onlineUsers.Add(userString);
             else
-                _connectedUsers.Remove(userString);
+                _onlineUsers.Remove(userString);
         }
-
+        public bool UserIsOnline(string username, int id)
+        {
+            return false;
+        }
     }
 }

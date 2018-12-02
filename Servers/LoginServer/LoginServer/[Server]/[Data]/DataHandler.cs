@@ -35,7 +35,7 @@ namespace BPS.LoginServer.DataHandling
             _buffer.Clear();
 
             //Check if the given username has already been used to succesfully log in
-            if (Server.Instance.IsUserAlreadyOnline(loginData.Username, loginData.UserId))
+            if (Server.Instance.UserAlreadyOnline(loginData.Username, loginData.UserId))
             {
                 _buffer.WriteInt((int)PacketType.LoginResponse);
                 _buffer.WriteInt((int)LoginState.UserAlreadyLoggedIn);
@@ -55,8 +55,10 @@ namespace BPS.LoginServer.DataHandling
 
                 if(loginData.LoginState == LoginState.SuccelfullLogin)
                 {
-                    //Set the username of the client
-                    Server.Instance.ConnectedClients[package.Socket].Username = (loginData.Username + "#" + loginData.UserId.ToString("00000"));
+                    string userString = loginData.Username + loginData.UserId.ToString("00000");
+
+                    Server.Instance.UpdateUserList(userString, false);
+                    Server.Instance.DisconnectSocket(package.Socket);
                 }
             }
 

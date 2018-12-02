@@ -15,6 +15,9 @@ namespace BPS.PipeLine
         private PipeSendingQueue _sendingQueue;
         private PipeSendingLoop _sendingLoop;
 
+        private byte[] _buffer = new byte[1024];
+        private bool _isRunning = false;
+
         public PipeServer()
         {
             Instance = this;

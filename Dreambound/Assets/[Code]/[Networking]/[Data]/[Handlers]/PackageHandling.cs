@@ -10,7 +10,6 @@ namespace Dreambound.Networking.DataHandling
     public class PackageHandling
     {
         private ByteBuffer _buffer;
-        private ClientNetworkPackage _networkPackage;
 
         private Queue<ClientNetworkPackage> _packages;
         public Queue<ClientNetworkPackage> PackageQueue

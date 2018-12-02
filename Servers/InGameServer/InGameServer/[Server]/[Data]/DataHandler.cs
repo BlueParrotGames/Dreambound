@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
 
+using BPS.PipeLine.Sending;
+
 using BPS.InGameServer.Utility;
 using BPS.InGameServer.Sending;
-using BPS.PipeLine.Sending;
 
 namespace BPS.InGameServer.DataHandling
 {
@@ -26,6 +27,7 @@ namespace BPS.InGameServer.DataHandling
         private void SetupNetworkPackets()
         {
             Packets.Add((int)PacketType.AccountInfo, HandleAccountInfo);
+            Packets.Add((int)PacketType.LogoutRequest, HandleLogoutRequest);
         }
 
         private void HandleAccountInfo(ClientNetworkPackage package)
@@ -33,19 +35,39 @@ namespace BPS.InGameServer.DataHandling
             _buffer.Clear();
             _buffer.WriteBytes(package.Data);
 
-            //get the username and id to update the UserList
+            Server.Instance.UpdateUserList(_buffer.ReadString(), _buffer.ReadInt(), false);
+        }
+        private void HandleLogoutRequest(ClientNetworkPackage package)
+        {
+            _buffer.Clear();
+            _buffer.WriteBytes(package.Data);
+
             string username = _buffer.ReadString();
             int id = _buffer.ReadInt();
+
             Server.Instance.UpdateUserList(username, id, true);
 
-            //Rewrite the username, id and write an extra bool to send through the pipeline
-            _buffer.WriteString(username);
-            _buffer.WriteInt(id);
-            _buffer.WriteBool(true);
+            _buffer.Clear();
+            _buffer.WriteInt((int)PacketType.LogoutResponse);
+            _buffer.WriteString(username + id.ToString("00000"));
 
             PipeSender.SendPacket(_buffer);
+            NetworkSender.SendPacket(_buffer, package.Socket);
+        }
 
-            package.ReturnToPool();
+        private void HandleOnlineFriendsRequest(ClientNetworkPackage package)
+        {
+            _buffer.Clear();
+            //_buffer.WriteBytes(package.Data);
+
+            _buffer.WriteInt((int)PacketType.OnlineFriendsResponse);
+            string[] userFriends = { "test2#2" };
+            for(int i = 0; i < userFriends.Length; i++)
+            {
+                _buffer.WriteString(userFriends[i]);
+            }
+
+            NetworkSender.SendPacket(_buffer, package.Socket);
         }
     }
 }

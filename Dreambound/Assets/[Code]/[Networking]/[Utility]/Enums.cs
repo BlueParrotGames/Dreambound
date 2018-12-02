@@ -4,11 +4,15 @@
     {
         Verification = 0,
 
-        //Login System
+        //Log -in/out  System
         LoginRequest = 101,
         LoginResponse,
+        LogoutRequest,
+        LogoutResponse,
 
         //Friending System
         AccountInfo = 201,
+        OnlineFriendsRequest = 202,
+        OnlineFriendsResponse = 203,
     }
 }

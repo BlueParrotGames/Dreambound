@@ -75,7 +75,7 @@ namespace BPS.LoginServer
         private void CloseConnection()
         {
             Socket.Close();
-            _server.DisconnectPlayer(Socket);
+            _server.DisconnectSocket(Socket);
         }
     }
 }

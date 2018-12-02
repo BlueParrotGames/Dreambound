@@ -13,8 +13,6 @@ namespace Dreambound.Networking
     public class NetworkHandler
     {
         private Socket _socket;
-
-        private bool _connected = false;
         private ByteBuffer _buffer;
 
         public void ConnectUsingSettings(string ip, int port)
@@ -35,7 +33,6 @@ namespace Dreambound.Networking
             if (_socket.Connected)
             {
                 Client client = new Client(_socket, new DataManager());
-                _connected = true;
             }
 
             if (_buffer == null)
@@ -55,32 +52,61 @@ namespace Dreambound.Networking
 
         public void Login(string email, string password)
         {
-            if (!_connected)
-                return;
+            if (Connected())
+            {
+                _buffer.Clear();
+                _buffer.WriteInt((int)PacketType.LoginRequest);
+                _buffer.WriteString(email);
+                _buffer.WriteString(password);
 
-            _buffer.Clear();
-            _buffer.WriteInt((int)PacketType.LoginRequest);
-            _buffer.WriteString(email);
-            _buffer.WriteString(password);
-
-            NetworkSender.SendPacket(_buffer, _socket);
+                NetworkSender.SendPacket(_buffer, _socket);
+            }
+            else
+            {
+                Debug.LogWarning("Socket is not connected");
+            }
         }
+
+
         public void SendAccountInfo()
         {
-            if (!_connected)
-                return;
+            if (Connected())
+            {
+                _buffer.Clear();
+                _buffer.WriteInt((int)PacketType.AccountInfo);
+                //_buffer.WriteString(UserData.Username);
+                //_buffer.WriteInt(UserData.ID);
 
+                //REMOVE THS LATER!!!
+                _buffer.WriteString("test1");
+                _buffer.WriteInt(1);
 
-            _buffer.Clear();
-            _buffer.WriteInt((int)PacketType.AccountInfo);
-            //_buffer.WriteString(UserData.Username);
-            //_buffer.WriteInt(UserData.ID);
+                NetworkSender.SendPacket(_buffer, _socket);
+            }
+        }
+        public void SendOnlineFriendsRequest()
+        {
+            if (Connected())
+            {
+                _buffer.Clear();
+                _buffer.WriteInt((int)PacketType.OnlineFriendsRequest);
+                //_buffer.WriteString(UserData.Username);
+                //_buffer.WriteInt(UserData.ID);
 
-            //REMOVE THS LATER!!!
-            _buffer.WriteString("test1");
-            _buffer.WriteInt(1);
+                _buffer.WriteString("test1");
+                _buffer.WriteInt(1);
 
-            NetworkSender.SendPacket(_buffer, _socket);
+                NetworkSender.SendPacket(_buffer, _socket);
+            }
+            else
+            {
+                Debug.LogWarning("Socket is not connected");
+            }
+        }
+
+        private bool Connected()
+        {
+            return (_socket.Connected && _socket != null);
         }
     }
 }

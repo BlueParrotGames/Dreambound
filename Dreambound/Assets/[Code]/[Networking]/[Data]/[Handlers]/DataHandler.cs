@@ -29,10 +29,17 @@ namespace Dreambound.Networking.DataHandling
         }
         private void SetupNetworkPackets()
         {
+            //General
             Packets.Add((int)PacketType.Verification, HandleVerificationHash);
+
+            //Login Server
             Packets.Add((int)PacketType.LoginResponse, HandleLoginResponse);
+
+            //In-Game Server
+            Packets.Add((int)PacketType.OnlineFriendsResponse, HandleOnlineFriendsResponse);
         }
 
+        //General
         private void HandleVerificationHash(ClientNetworkPackage package)
         {
             _byteBuffer.Clear();
@@ -42,6 +49,8 @@ namespace Dreambound.Networking.DataHandling
 
             Debug.Log("Verification Hash received");
         }
+
+        //Login Server
         private void HandleLoginResponse(ClientNetworkPackage package)
         {
             _byteBuffer.Clear();
@@ -58,6 +67,12 @@ namespace Dreambound.Networking.DataHandling
                 UserData.SetUserData(loginData);
 
             Debug.Log("Login response received");
+        }
+
+        //In-Game Server
+        private void HandleOnlineFriendsResponse(ClientNetworkPackage package)
+        {
+            Debug.Log("Online friends response received");
         }
     }
 }

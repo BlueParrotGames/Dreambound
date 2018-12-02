@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Sockets;
 using System.Net;
 using System.Threading;
@@ -9,12 +8,10 @@ using BPS.Debugging;
 using BPS.LoginServer.Sending;
 using BPS.LoginServer.Security;
 using BPS.LoginServer.DataHandling;
-using BPS.LoginServer.Utility;
-using BPS.PipeLine;
 
 namespace BPS.LoginServer
 {
-    public class Server : IDisposable
+    public class Server
     {
         public static Server Instance;
 
@@ -31,7 +28,7 @@ namespace BPS.LoginServer
         private VerificationLogic _verification;
 
         private Dictionary<Socket, Client> _connectedClients;
-        public List<string> ConnectedUsers { get; internal set; }
+        private List<string> _onlineUsers;
         private Thread _packetHandlingThread;
 
         private readonly bool _isRunning;
@@ -43,7 +40,7 @@ namespace BPS.LoginServer
         {
             Instance = this;
             ConnectedClients = new Dictionary<Socket, Client>();
-            ConnectedUsers = new List<string>();
+            _onlineUsers = new List<string>();
 
             //Setup all the data components
             PacketHandler = new PackageHandling();
@@ -60,8 +57,6 @@ namespace BPS.LoginServer
             _socket.BeginAccept(new AsyncCallback(AcceptConnection), null);
 
             _isRunning = true;
-
-            PipeClient.OnUserStateUpdated += UpdateUserList;
 
             _packetHandlingThread = new Thread(ServerPacketHandlingLoop);
             _packetHandlingThread.Start();
@@ -80,7 +75,7 @@ namespace BPS.LoginServer
 
             Logger.Warn("A client has connected (IP: " + clientSocket.RemoteEndPoint + ")");
         }
-        public void DisconnectPlayer(Socket socket)
+        public void DisconnectSocket(Socket socket)
         {
             ConnectedClients.Remove(socket);
         }
@@ -103,31 +98,20 @@ namespace BPS.LoginServer
             }
         }
 
-        public void Dispose()
+        public void UpdateUserList(string userstring, bool online)
         {
-            //_socket.Close();
-            //_packetHandlingThread.Abort();
-        }
-
-        private void UpdateUserList(string username, int id, bool online)
-        {
-            string userString = username + "#" + id.ToString("00000");
-
-
             if (!online)
-            {
-                ConnectedUsers.Add(userString);
-                Logger.Log(userString + " Logged in");
-            }
+                _onlineUsers.Add(userstring);
             else
-            {
-                ConnectedUsers.Remove(userString);
-                Logger.Log(userString + " Logged out");
-            }
+                _onlineUsers.Remove(userstring);
         }
-        public bool IsUserAlreadyOnline(string username, int id)
+        public bool UserAlreadyOnline(string userString)
         {
-            return (ConnectedUsers.Contains(username + "#" + id.ToString("00000")));
+            return (_onlineUsers.Contains(userString));
+        }
+        public bool UserAlreadyOnline(string username, int id)
+        {
+            return (_onlineUsers.Contains(username + id.ToString("00000")));
         }
     }
 }

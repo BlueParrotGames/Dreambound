@@ -15,31 +15,29 @@ namespace BPS.PipeLine
         private NamedPipeClientStream _pipeClient;
         private PipePackageHandling _packetHandler;
 
-        ByteBuffer _handlingBuffer;
+        private ByteBuffer _handlingBuffer;
         private byte[] _buffer = new byte[1024];
         private bool _isRunning = false;
-
-        public static event Action<string, int, bool> OnUserStateUpdated;
 
         public PipeClient()
         {
             Instance = this;
             _packetHandler = new PipePackageHandling(_pipeClient);
 
-            ConnectPipeLine();
-            BeginReceiving();
-
             _handlingBuffer = new ByteBuffer();
 
             _isRunning = true;
             Thread handlingLoop = new Thread(PacketHandlingLoop);
             handlingLoop.Start();
+
+            ConnectPipeLine();
+            BeginReceiving();
         }
         private void ConnectPipeLine()
         {
-            Logger.Log("Connecting to pipeline...");
-
             _pipeClient = new NamedPipeClientStream(".", "BPG Dreambound Pipeline", PipeDirection.InOut, PipeOptions.Asynchronous);
+
+            Logger.Log("Connecting to pipeline...");
 
             _pipeClient.Connect();
 
@@ -56,7 +54,7 @@ namespace BPS.PipeLine
             {
                 int readBytes = _pipeClient.EndRead(result);
 
-                if(readBytes <= 0)
+                if (readBytes <= 0)
                 {
                     Logger.LogError("Pipe received 0 bytes?");
                     return;
@@ -103,8 +101,11 @@ namespace BPS.PipeLine
 
                     _handlingBuffer.Clear();
                     _handlingBuffer.WriteBytes(package.Data);
-                    
-                    OnUserStateUpdated?.Invoke(_handlingBuffer.ReadString(), _handlingBuffer.ReadInt(), _handlingBuffer.ReadBool());
+                    _handlingBuffer.ReadInt();
+
+                    string userstring = _handlingBuffer.ReadString();
+
+                    LoginServer.Server.Instance.UpdateUserList(userstring, true);
                 }
             }
         }
