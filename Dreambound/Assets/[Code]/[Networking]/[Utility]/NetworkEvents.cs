@@ -3,8 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-using Dreambound.Networking.LoginSystem;
-
 namespace Dreambound.Networking.Utility
 {
     public class NetworkEvents
@@ -21,15 +19,8 @@ namespace Dreambound.Networking.Utility
             }
         }
 
-        //Events
-        public event Action<object, object> OnLoginAttempt;
         public event Action<string> OnHashReceived;
 
-        //Register Functions
-        public void RegisterLoginAttempt(LoginState loginState, int id)
-        {
-            OnLoginAttempt?.Invoke(loginState, id);
-        }
         public void RegisterHashReceived(string Hash)
         {
             OnHashReceived?.Invoke(Hash);

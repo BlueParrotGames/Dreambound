@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 using Dreambound.Networking.Utility;
-using Dreambound.Networking.LoginSystem;
 
 namespace Dreambound.Networking.DataHandling
 {
@@ -32,9 +31,6 @@ namespace Dreambound.Networking.DataHandling
             //General
             Packets.Add((int)PacketType.Verification, HandleVerificationHash);
 
-            //Login Server
-            Packets.Add((int)PacketType.LoginResponse, HandleLoginResponse);
-
             //In-Game Server
             Packets.Add((int)PacketType.OnlineFriendsResponse, HandleOnlineFriendsResponse);
         }
@@ -48,25 +44,6 @@ namespace Dreambound.Networking.DataHandling
             NetworkEvents.Instance.RegisterHashReceived(_byteBuffer.ReadString());
 
             Debug.Log("Verification Hash received");
-        }
-
-        //Login Server
-        private void HandleLoginResponse(ClientNetworkPackage package)
-        {
-            _byteBuffer.Clear();
-
-            //Convert the ByteBuffer to LoginData
-            _byteBuffer.WriteBytes(package.Data);
-            LoginData loginData = new LoginData((LoginState)_byteBuffer.ReadInt(), _byteBuffer.ReadString(), _byteBuffer.ReadInt(), (GamePerks)_byteBuffer.ReadInt());
-
-            //Register the event to the event handler
-            NetworkEvents.Instance.RegisterLoginAttempt(loginData.LoginState, (int)loginData.GamePerks);
-
-            //Update the UserData because we successfully logged in
-            if (loginData.LoginState == LoginState.SuccelfullLogin && loginData.GamePerks > 0)
-                UserData.SetUserData(loginData);
-
-            Debug.Log("Login response received");
         }
 
         //In-Game Server

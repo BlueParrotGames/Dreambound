@@ -6,7 +6,6 @@ using UnityEngine;
 
 using Dreambound.Networking.DataHandling;
 using Dreambound.Networking.Utility;
-using Dreambound.Networking.LoginSystem;
 
 namespace Dreambound.Networking
 {
@@ -49,24 +48,6 @@ namespace Dreambound.Networking
                 Debug.Log("Socket has disconnected");
             }
         }
-
-        public void Login(string email, string password)
-        {
-            if (Connected())
-            {
-                _buffer.Clear();
-                _buffer.WriteInt((int)PacketType.LoginRequest);
-                _buffer.WriteString(email);
-                _buffer.WriteString(password);
-
-                NetworkSender.SendPacket(_buffer, _socket);
-            }
-            else
-            {
-                Debug.LogWarning("Socket is not connected");
-            }
-        }
-
 
         public void SendAccountInfo()
         {
