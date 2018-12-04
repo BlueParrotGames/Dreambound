@@ -52,7 +52,7 @@ namespace BPS.InGameServer
 
             //Setup the server socket
             _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            _socket.Bind(new IPEndPoint(IPAddress.Any, 4382));
+            _socket.Bind(new IPEndPoint(IPAddress.Any, 4381));
             _socket.Listen(20);
             _socket.BeginAccept(new AsyncCallback(AcceptConnection), null);
 

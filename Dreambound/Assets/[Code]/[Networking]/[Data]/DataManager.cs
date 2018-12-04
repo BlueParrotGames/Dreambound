@@ -34,7 +34,7 @@ namespace Dreambound.Networking.DataHandling
 
             _sendingQueue = new NetworkSendingQueue();
             _networkSender = new NetworkSender(_sendingQueue);
-            _sendingLoop = new NetworkSendingLoop(this, _sendingQueue);
+            _sendingLoop = new NetworkSendingLoop(_sendingQueue);
 
             _isRunning = true;
 

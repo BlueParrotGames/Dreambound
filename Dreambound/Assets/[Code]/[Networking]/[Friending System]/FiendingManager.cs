@@ -16,6 +16,8 @@ namespace Dreambound.Networking.FriendNetworking
             _networkManager = FindObjectOfType<NetworkManager>();
             _networkManager.ConnectUsingSettings(_connectionIp, _connectionPort);
 
+            PeerToPeer.Server.NATHole.Punch();
+
             SendAccountInfo();
         }
 

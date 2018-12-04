@@ -7,16 +7,14 @@ namespace Dreambound.Networking.DataHandling
     public class NetworkSendingLoop : IDisposable
     {
         private readonly NetworkSendingQueue _sendingQueue;
-        private readonly DataManager _dataManager;
         private readonly bool _isSending;
 
         private Thread _sendingThreadOne;
 
-        public NetworkSendingLoop(DataManager dataManager, NetworkSendingQueue sendingQueue)
+        public NetworkSendingLoop(NetworkSendingQueue sendingQueue)
         {
             _sendingQueue = sendingQueue;
             _isSending = true;
-            _dataManager = dataManager;
 
             _sendingThreadOne = new Thread(CoreLoop);
             _sendingThreadOne.Start();

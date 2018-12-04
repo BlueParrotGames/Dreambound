@@ -8,5 +8,7 @@
         AccountInfo = 201,
         OnlineFriendsRequest = 202,
         OnlineFriendsResponse = 203,
+
+        //Peer to Peer
     }
 }
