@@ -101,5 +101,10 @@ namespace Dreambound.Networking.PeerToPeer.Server
                 Thread.Sleep(10);
             }
         }
+
+        public int ConnectionsCount
+        {
+            get { return _connectedClients.Count; }
+        }
     }
 }
