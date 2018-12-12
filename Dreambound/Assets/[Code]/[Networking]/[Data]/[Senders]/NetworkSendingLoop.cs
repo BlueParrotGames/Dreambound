@@ -2,20 +2,22 @@
 using System.Threading;
 using System.Net.Sockets;
 
-namespace Dreambound.Networking.DataHandling
+namespace Dreambound.Networking.Data.Sending
 {
     public class NetworkSendingLoop : IDisposable
     {
         private readonly NetworkSendingQueue _sendingQueue;
-        private readonly bool _isSending;
+        private UdpClient _client;
 
+        private readonly bool _isSending;
         private Thread _sendingThreadOne;
 
-        public NetworkSendingLoop(NetworkSendingQueue sendingQueue)
+        public NetworkSendingLoop(NetworkSendingQueue sendingQueue, UdpClient client)
         {
             _sendingQueue = sendingQueue;
-            _isSending = true;
+            _client = client;
 
+            _isSending = true;
             _sendingThreadOne = new Thread(CoreLoop);
             _sendingThreadOne.Start();
         }
@@ -27,8 +29,7 @@ namespace Dreambound.Networking.DataHandling
                 if (_sendingQueue.HasPackets())
                 {
                     SendingData sendableData = _sendingQueue.SendingQueue.Dequeue();
-
-                    sendableData.Receiver.BeginSend(sendableData.Buffer.ToArray(), 0, sendableData.Buffer.Count(), SocketFlags.None, new AsyncCallback(SendCallback), null);
+                    _client.Send(sendableData.Buffer, sendableData.ByteLength, sendableData.Receiver);
                 }
             }
         }

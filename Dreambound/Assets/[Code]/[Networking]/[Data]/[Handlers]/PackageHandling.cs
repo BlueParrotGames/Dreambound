@@ -1,11 +1,12 @@
 ﻿using System.Collections;
+using System.Net;
 using System.Collections.Generic;
-using System.Net.Sockets;
+
 using UnityEngine;
 
 using Dreambound.Networking.Utility;
 
-namespace Dreambound.Networking.DataHandling
+namespace Dreambound.Networking.Data.Handlers
 {
     public class PackageHandling
     {
@@ -24,17 +25,17 @@ namespace Dreambound.Networking.DataHandling
             _buffer = new ByteBuffer();
         }
 
-        public void QueuePackage(byte[] data, Socket socket)
+        public void QueuePackage(byte[] data, IPEndPoint endPoint)
         {
             if (_buffer == null)
                 _buffer = new ByteBuffer();
 
             _buffer.Clear();
             _buffer.WriteBytes(data);
-            int packetSize = _buffer.ReadInt();
+
             int packetID = _buffer.ReadInt();
 
-            PackageQueue.Enqueue(new ClientNetworkPackage((PacketType)packetID, socket, _buffer.ReadBytes(_buffer.Length())));
+            PackageQueue.Enqueue(new ClientNetworkPackage((PacketType)packetID, endPoint, _buffer.ReadBytes(_buffer.Length())));
         }
 
         public bool HasPackets()

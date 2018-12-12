@@ -1,8 +1,8 @@
 ﻿using Dreambound.Networking.Utility;
-using System.Net.Sockets;
+using System.Net;
 using UnityEngine;
 
-namespace Dreambound.Networking.DataHandling
+namespace Dreambound.Networking.Data.Sending
 {
     public class NetworkSender
     {
@@ -13,15 +13,9 @@ namespace Dreambound.Networking.DataHandling
             _queue = queue;
         }
 
-        public static void SendPacket(ByteBuffer buffer, Socket socket)
+        public static void SendPacket(byte[] buffer, IPEndPoint receiver)
         {
-            SendingData data = new SendingData
-            {
-                Buffer = buffer,
-                Receiver = socket
-            };
-
-            _queue.QueuePackage(buffer.ToArray(), socket);
+            _queue.QueuePackage(buffer, receiver);
         }
     }
 }

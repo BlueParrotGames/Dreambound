@@ -5,34 +5,37 @@ using System.Threading;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
-using BPG.Debugging;
-using BPG.NATServer.Data;
-using BPG.NATServer.Data.Sending;
-using BPG.NATServer.Data.Handlers;
+using UnityEngine;
 
-namespace BPG.NATServer
+using Dreambound.Networking.Data;
+using Dreambound.Networking.Data.Sending;
+using Dreambound.Networking.Data.Handlers;
+using Dreambound.Networking.Utility;
+
+namespace Dreambound.Networking.P2P
 {
-    public class Server : IDisposable
+    public class P2PClient
     {
         private UdpClient _client;
+        private IPEndPoint _serverEndpoint;
 
         //Sending Instances
-        private readonly NetworkSender _networkSender;
-        private readonly NetworkSendingQueue _sendingQueue;
-        private readonly NetworkSendingLoop _sendingLoop;
+        private NetworkSender _networkSender;
+        private NetworkSendingQueue _sendingQueue;
+        private NetworkSendingLoop _sendingLoop;
 
         //Handling Instances
-        private PacketHandler _packetHandler;
+        private PackageHandling _packetHandler;
         private DataHandler _dataHandler;
 
         //Handling Variables
         private bool _isRunning;
         private Thread _packetHandlingThread;
 
-        public Server() : this(new IPEndPoint(IPAddress.Any, 4383)) { }
-        public Server(IPEndPoint endPoint)
+        public P2PClient(IPEndPoint endPoint)
         {
-            _client = new UdpClient(endPoint);
+            _client = new UdpClient();
+            _serverEndpoint = endPoint;
 
             //Sending Instances
             _sendingQueue = new NetworkSendingQueue();
@@ -40,7 +43,7 @@ namespace BPG.NATServer
             _sendingLoop = new NetworkSendingLoop(_sendingQueue, _client);
 
             //Handling Instances
-            _packetHandler = new PacketHandler();
+            _packetHandler = new PackageHandling();
             _dataHandler = new DataHandler();
 
             //Handling Variables
@@ -49,21 +52,17 @@ namespace BPG.NATServer
             _packetHandlingThread.Start();
 
             StartReceiveLoop();
-
-            Logger.Log("Server started\n");
         }
 
         private void StartReceiveLoop()
         {
-            Logger.Log("Receive loop started...\n");
-
             Task.Factory.StartNew(async () =>
             {
                 while (_isRunning)
                 {
                     //Get and queue the received data for handling
                     Received receivedData = await Receive();
-                    _packetHandler.QueuePacket(receivedData.Data, receivedData.Sender);
+                    _packetHandler.QueuePackage(receivedData.Data, receivedData.Sender);
                 }
             });
         }
@@ -84,9 +83,9 @@ namespace BPG.NATServer
             {
                 if (_packetHandler.HasPackets())
                 {
-                    ClientNetworkPackage package = _packetHandler.PacketQueue.Dequeue();
+                    ClientNetworkPackage package = _packetHandler.PackageQueue.Dequeue();
 
-                    if(_dataHandler.Packets.TryGetValue((int)package.PacketType, out DataHandler.Packet packet))
+                    if (_dataHandler.Packets.TryGetValue((int)package.PacketType, out DataHandler.Packet packet))
                     {
                         packet?.Invoke(package);
                     }
@@ -94,20 +93,15 @@ namespace BPG.NATServer
             }
         }
 
-        public void Dispose()
+        public void Send(string text)
         {
-            //Data Instances
-            _sendingQueue.Dispose();
-            _packetHandler.Dispose();
+            ByteBuffer buffer = new ByteBuffer();
+            buffer.WriteInt((int)PacketType.Message);
+            buffer.WriteBytes(Encoding.UTF8.GetBytes(text));
 
-            //Handling Variables
-            _isRunning = false;
-            _packetHandlingThread.Abort();
-
-            _client.Dispose();
+            NetworkSender.SendPacket(buffer.ReadBytes(buffer.Length()), _serverEndpoint);
         }
     }
-
     public struct Received
     {
         public IPEndPoint Sender;

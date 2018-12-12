@@ -1,17 +1,27 @@
-﻿using System.Net.Sockets;
+﻿using System;
+using System.Net;
+using System.Text;
+using System.Net.Sockets;
+using System.Threading.Tasks;
 
 using UnityEngine;
+using UnityEngine.UI;
 
 using Dreambound.Networking.P2P;
 
 public class NATTest : MonoBehaviour
 {
-    private void Update()
+    private P2PClient _natHandler;
+    [SerializeField] InputField _inputField;
+
+    private void Start()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            //Socket socket = NATHole.Punch("127.0.0.1", 4383);
-            Socket socket = NATHole.Punch("178.84.28.2", 4383);
-        }
+        _natHandler = new P2PClient(new IPEndPoint(IPAddress.Parse("178.84.28.2"), 4383));
+        //_natHandler = new P2PClient(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4383));
+    }
+
+    public void Send()
+    {
+        _natHandler.Send(_inputField.text);
     }
 }

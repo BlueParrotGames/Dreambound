@@ -1,11 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Net.Sockets;
+using System.Net;
 
 using Dreambound.Networking.Utility;
 
-namespace Dreambound.Networking.DataHandling
+namespace Dreambound.Networking.Data
 {
     public interface INetworkPackage
     {
@@ -14,14 +14,14 @@ namespace Dreambound.Networking.DataHandling
 
     public struct ClientNetworkPackage : INetworkPackage
     {
-        public readonly PacketType Packet;
-        public readonly Socket Socket;
+        public readonly PacketType PacketType;
+        public readonly IPEndPoint EndPoint;
         public readonly byte[] Data;
 
-        public ClientNetworkPackage(PacketType packet, Socket socket, byte[] data)
+        public ClientNetworkPackage(PacketType packet, IPEndPoint endPoint, byte[] data)
         {
-            Packet = packet;
-            Socket = socket;
+            PacketType = packet;
+            EndPoint = endPoint;
             Data = data;
         }
     }

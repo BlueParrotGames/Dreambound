@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Net.Sockets;
+using System.Net;
 using UnityEngine;
 
 using Dreambound.Networking.Utility;
 
-namespace Dreambound.Networking.DataHandling
+namespace Dreambound.Networking.Data.Sending
 {
     public class NetworkSendingQueue : IDisposable
     {
@@ -22,16 +22,12 @@ namespace Dreambound.Networking.DataHandling
             SendingQueue = new Queue<SendingData>();
         }
 
-        public void QueuePackage(byte[] data, Socket socket)
+        public void QueuePackage(byte[] data, IPEndPoint endPoint)
         {
-            ByteBuffer buffer = new ByteBuffer();
-            buffer.WriteInt(data.Length);
-            buffer.WriteBytes(data);
-
             SendingData sendData = new SendingData
             {
-                Buffer = buffer,
-                Receiver = socket,
+                Buffer = data,
+                Receiver = endPoint,
                 ByteLength = data.Length
             };
 
@@ -51,8 +47,8 @@ namespace Dreambound.Networking.DataHandling
 
     public struct SendingData
     {
-        public ByteBuffer Buffer;
-        public Socket Receiver;
+        public byte[] Buffer;
+        public IPEndPoint Receiver;
         public int ByteLength;
     }
 }

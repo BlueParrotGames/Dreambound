@@ -5,13 +5,7 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
-    path: 
-    guid: 00000000000000000000000000000000
-  - enabled: 0
-    path: Assets/[Scenes]/[Networking]/FriendMenu.unity
-    guid: c6e774015f545334a83ce26a80f5cbed
   - enabled: 1
-    path: Assets/[Scenes]/[Networking]/[Test Scenes]/Test_ServerHolePunch.unity
-    guid: fe3c10575c0055143ab55e65142e9f9c
+    path: Assets/[Scenes]/[Networking]/HolePunch.unity
+    guid: db7e29c8a0a64cc42951ca37db4ad512
   m_configObjects: {}
